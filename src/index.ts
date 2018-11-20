@@ -1,15 +1,37 @@
 // src/index.ts
 // Copyright 2018 Leo C. Singleton IV <leo@leosingleton.com>
 
+import { loader } from 'webpack';
+import LoaderContext = loader.LoaderContext;
+
 import { readFileSync } from 'fs';
 
-export function helper(): string {
-  //return readFileSync('hello.txt', 'utf-8');
-  return 'Hello World!';
+/** Output of the GLSL Minifier */
+export interface GlslProgram {
+  /** Minified GLSL code */
+  code: string;
 }
 
-function main(content: string): string {
-  return 'module.exports = ' + JSON.stringify(helper());
+export class GlslMinify {
+  constructor(loader: LoaderContext) {
+    this.loader = loader;
+  }
+
+  public async execute(content: string): Promise<GlslProgram> {
+    return {
+      code: 'Hello World!'
+    };
+  }
+
+  private loader: LoaderContext;
 }
 
-export default main;
+export default async function(content: string) {
+  let loader = this as LoaderContext;
+  loader.async();
+
+  let glsl = new GlslMinify(loader);
+  let program = await glsl.execute(content);
+
+  loader.callback(null, 'module.exports = ' + JSON.stringify(program));
+};
