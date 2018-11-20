@@ -9,15 +9,11 @@
     "url": "https://leosingleton@bitbucket.org/leosingleton/webpack-glsl-minify.git"
   },
   "dependencies": {
-    "@types/jasmine": "^3.3.0",
+    "@types/jasmine-node": "^1.14.34",
     "@types/webpack": "^4.4.19"
   },
   "devDependencies": {
-    "jasmine-core": "^3.3.0",
-    "karma": "^3.1.1",
-    "karma-chrome-launcher": "^2.2.0",
-    "karma-commonjs": "^1.0.0",
-    "karma-jasmine": "^2.0.1",
+    "jasmine-node": "^1.16.2",
     "typescript": "^3.1.6"
   },
   "scripts": {

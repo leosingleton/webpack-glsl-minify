@@ -9,9 +9,5 @@ TARGET="${1:-debug}"
 
 if [[ "$TARGET" == "test" ]]; then
   # Execute unit tests on the test target
-  if [[ "$2" == "--debug" ]]; then
-    ./node_modules/karma/bin/karma start --single-run=false
-  else
-    ./node_modules/karma/bin/karma start
-  fi
+  ./node_modules/jasmine-node/bin/jasmine-node ./build/index.spec.js
 fi
