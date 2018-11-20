@@ -1,0 +1,19 @@
+options:
+  max-time: 3
+
+pipelines:
+  default:
+    - step:
+        name: Build
+        image: atlassianlabs/docker-node-jdk-chrome-firefox
+        caches:
+          - node
+          
+        script:
+          # Build
+          - npm install
+          - npm run build
+          - npm run build test
+          
+        artifacts:
+          - build/**
