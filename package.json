@@ -1,0 +1,25 @@
+{
+  "name": "webpack-glsl-minify",
+  "version": "1.0.0",
+  "author": "Leo C. Singleton IV <leo@leosingleton.com>",
+  "description": "GLSL Loader, Preprocessor, and Minifier for Webpack",
+  "private": true,
+  "repository": {
+    "type": "git",
+    "url": "https://leosingleton@bitbucket.org/leosingleton/webpack-glsl-minify.git"
+  },
+  "dependencies": {
+    "@types/jasmine": "^3.3.0",
+    "@types/webpack": "^4.4.19"
+  },
+  "devDependencies": {
+    "jasmine-core": "^3.3.0",
+    "karma": "^3.1.1",
+    "karma-chrome-launcher": "^2.2.0",
+    "karma-jasmine": "^2.0.1",
+    "typescript": "^3.1.6"
+  },
+  "scripts": {
+    "build": "./build.sh"
+  }
+}

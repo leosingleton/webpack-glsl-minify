@@ -1,0 +1,17 @@
+{
+    "compilerOptions": {
+        "outDir": "build",
+        "module": "commonjs",
+        "moduleResolution": "node",
+        "allowJs": true,
+        "noImplicitAny": true,
+        "preserveConstEnums": true,
+        "sourceMap": true,
+        "target": "es6",
+        "removeComments": false
+    },
+    "include": [
+        "src/**/*"
+    ],
+    "types": []
+}
