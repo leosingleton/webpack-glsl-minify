@@ -11,6 +11,7 @@ pipelines:
           
         script:
           # Build
+          - chmod 755 ./build.sh
           - npm install
           - npm run build
           - npm run build test
