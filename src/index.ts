@@ -55,34 +55,54 @@ let glslReservedKeywords = [
   'mat4', 'mat4x2', 'mat4x3', 'mat4x4',
 
   // Other type-related keywords
-  'false', 'struct', 'true', 'uniform', 'varying', 'void',
+  'attribute', 'const', 'false', 'invariant', 'struct', 'true', 'uniform', 'varying', 'void',
 
-  // Control functions
-  'for',
+  // Precision keywords
+  'highp', 'lowp', 'mediump', 'precision',
+
+  // Input/output keywords
+  'in', 'inout', 'out',
+
+  // Control keywords
+  'break', 'continue', 'do', 'else', 'for', 'if', 'return', 'while',
+
+  // Built-in macros
+  '__FILE__', '__LINE__', '__VERSION__', 'GL_ES', 'GL_FRAGMENT_PRECISION_HIGH',
 
   // Trig functions
-  'acos', 'asin', 'atan', 'cos', 'degrees', 'radians', 'sin', 'tan',
+  'acos', 'acosh', 'asin', 'asinh', 'atan', 'atanh', 'cos', 'cosh', 'degrees', 'radians', 'sin', 'sinh', 'tan', 'tanh',
 
   // Exponents and logarithms
   'exp', 'exp2', 'inversesqrt', 'log', 'log2', 'pow', 'sqrt',
 
   // Clamping and modulus-related funcions
-  'abs', 'ceil', 'clamp', 'floor', 'fract', 'max', 'min', 'mod', 'sign',
+  'abs', 'ceil', 'clamp', 'floor', 'fract', 'max', 'min', 'mod', 'modf', 'round', 'roundEven', 'sign', 'trunc',
+
+  // Floating point functions
+  'isinf', 'isnan',
 
   // Boolean functions
   'all', 'any', 'equal','greaterThan', 'greaterThanEqual', 'lessThan', 'lessThanEqual', 'not', 'notEqual',
 
   // Vector functions
-  'cross', 'distance', 'dot', 'faceforward', 'length', 'normalize', 'reflect', 'refract',
+  'cross', 'distance', 'dot', 'faceforward', 'length', 'outerProduct', 'normalize', 'reflect', 'refract',
 
   // Matrix functions
-  'matrixCompMult',
+  'determinant', 'inverse', 'matrixCompMult',
   
   // Interpolation functions
   'mix', 'step', 'smoothstep',
 
   // Texture functions
-  'texture2D', 'textureCube'
+  'texture2D', 'texture2DProj', 'textureCube', 'textureSize',
+
+  // Noise functions
+  'noise1', 'noise2', 'noise3', 'noise4',
+
+  // Derivative functions
+  'dFdx', 'dFdxCoarse', 'dFdxFine',
+  'dFdy', 'dFdyCoarse', 'dFdyFine',
+  'fwidth', 'fwidthCoarse', 'fwidthFine'
 ];
 
 /**
