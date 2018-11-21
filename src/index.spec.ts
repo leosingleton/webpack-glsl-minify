@@ -99,8 +99,25 @@ describe('GlslMinify', () => {
     // Read the expected output
     let expected = await glsl.readFile('tests/minify1.min.glsl');
     expect(output.code).toEqual(trim(expected.contents));
-    //expect(output.map['u_flipY'].min).toEqual('A');
-    //expect(output.map['u_flipY'].type).toEqual('float');
+    expect(output.map['u_flipY'].min).toEqual('A');
+    expect(output.map['u_flipY'].type).toEqual('float');
+    done();
+  });
+
+  it('Minifies a fragment shader', async (done) => {
+    let glsl = new GlslMinify(null);
+    let file = await glsl.readFile('tests/minify2.glsl');
+    let output = await glsl.execute(file.contents);
+
+    // Read the expected output
+    let expected = await glsl.readFile('tests/minify2.min.glsl');
+    expect(output.code).toEqual(trim(expected.contents));
+    expect(output.map['u_y'].min).toEqual('A');
+    expect(output.map['u_y'].type).toEqual('texture2D');
+    expect(output.map['u_cb'].min).toEqual('B');
+    expect(output.map['u_cb'].type).toEqual('texture2D');
+    expect(output.map['u_cr'].min).toEqual('C');
+    expect(output.map['u_cr'].type).toEqual('texture2D');
     done();
   });
 });

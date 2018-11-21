@@ -426,7 +426,7 @@ export class GlslMinify {
     //  1) An alphanumeric token (\w+), which may include underscores
     //  2) One or more operators (non-alphanumeric)
     //  3) GLSL preprocessor directive beginning with #
-    let tokenRegex = /\w+|[^\s\w#]+|#.*/g;
+    let tokenRegex = /\w+|[^\s\w#.]+|\.|#.*/g;
 
     // Minifying requires a simple state machine the lookbacks to the previous two tokens
     let match: string[]
