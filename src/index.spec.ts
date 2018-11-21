@@ -3,10 +3,19 @@
 
 import { GlslMinify } from './index';
 
-describe('Sample', () => {
-  it('Sample Test', async () => {
+describe('GlslMinify', () => {
+  it('Reads files', async (done) => {
     let glsl = new GlslMinify(null);
-    let program = await glsl.execute('');
-    expect(program.code).toEqual('Hello World!');
+    let file = await glsl.readFile('tests/hello.glsl');
+    expect(file.contents).toEqual('// Hello World!');
+    done();
+  });
+
+  it('Preprocessor removes comments', async (done) => {
+    let glsl = new GlslMinify(null);
+    let file = await glsl.readFile('tests/comments.glsl');
+    let output = await glsl.preprocess(file);
+    expect(output).toEqual('void main() {}\n');
+    done();
   });
 });
