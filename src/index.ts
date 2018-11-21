@@ -64,7 +64,7 @@ let glslReservedKeywords = [
   'in', 'inout', 'out',
 
   // Control keywords
-  'break', 'continue', 'do', 'else', 'for', 'if', 'return', 'while',
+  'break', 'continue', 'do', 'else', 'for', 'if', 'main', 'return', 'while',
 
   // Built-in macros
   '__FILE__', '__LINE__', '__VERSION__', 'GL_ES', 'GL_FRAGMENT_PRECISION_HIGH',
@@ -196,6 +196,38 @@ export class TokenMap {
   }
 }
 
+export enum TokenType {
+  /**
+   * Normal token. May be a variable, function, or reserved keyword. (Note: attribute, uniform, and varying are
+   * handled specially below)
+   */
+  ttToken,
+
+  /** The attribute keyword */
+  ttAttribute,
+
+  /** The uniform keyword */
+  ttUniform,
+
+  /** The varying keyword */
+  ttVarying,
+
+  /** An operator, including brackets and parentheses. (Note: dot is a special one below) */
+  ttOperator,
+
+  /** The dot operator. This operator has special meaning in GLSL due to vector swizzle masks. */
+  ttDot,
+
+  /** A numeric value */
+  ttNumeric,
+
+  /** A GLGL preprocessor directive */
+  ttPreprocessor,
+
+  /** Special value used in the parser when there is no token */
+  ttNone
+}
+
 export class GlslMinify {
   constructor(loader: LoaderContext) {
     this.loader = loader;
@@ -207,12 +239,13 @@ export class GlslMinify {
   public async execute(content: string): Promise<GlslProgram> {
     let input: GlslFile = { contents: content };
 
+    // Perform the minification. This takes three separate passes over the input.
     let pass1 = await this.preprocessPass1(input);
-
     let pass2 = this.preprocessPass2(pass1);
+    let pass3 = this.minifier(pass2);
 
     return {
-      code: pass2,
+      code: pass3,
       map: this.tokens.getUniforms()
     };
   }
@@ -361,6 +394,112 @@ export class GlslMinify {
     return output;
   }
 
+  /** Determines the token type of a token string */
+  public static getTokenType(token: string): TokenType {
+    if (token === 'attribute') {
+      return TokenType.ttAttribute;
+    } else if (token === 'uniform') {
+      return TokenType.ttUniform;
+    } else if (token === 'varying') {
+      return TokenType.ttVarying;
+    } else if (token === '.') {
+      return TokenType.ttDot;
+    } else if (token[0] === '#') {
+      return TokenType.ttPreprocessor;
+    } else if (/[0-9]/.test(token[0])) {
+      return TokenType.ttNumeric;
+    } else if (/\w/.test(token[0])) {
+      return TokenType.ttToken;
+    } else {
+      return TokenType.ttOperator;
+    }
+  }
+
+  /**
+   * The final pass consists of the actual minifier itself
+   */
+  public minifier(content: string): string {
+    // Unlike the previous passes, on this one, we start with an empty output and build it up
+    let output = '';
+
+    // The token regex looks for any of three items:
+    //  1) An alphanumeric token (\w+), which may include underscores
+    //  2) One or more operators (non-alphanumeric)
+    //  3) GLSL preprocessor directive beginning with #
+    let tokenRegex = /\w+|[^\s\w#]+|#.*/g;
+
+    // Minifying requires a simple state machine the lookbacks to the previous two tokens
+    let match: string[]
+    let prevToken: string;
+    let prevType = TokenType.ttNone;
+    let prevPrevType = TokenType.ttNone;
+    while (match = tokenRegex.exec(content)) {
+      let token = match[0];
+      let type = GlslMinify.getTokenType(token);
+
+      switch (type) {
+        case TokenType.ttPreprocessor:
+          // Special case for #define: we want to minify the value being defined
+          let defineRegex = /#define\s(\w+)\s(.*)/;
+          let subMatch = defineRegex.exec(token);
+          if (subMatch) {
+            let minToken = this.tokens.minifyToken(subMatch[1]);
+            output += '#define ' + minToken + ' ' + subMatch[2] + '\n';
+            break;
+          }
+
+          // Preprocessor directives are special in that they require the newline
+          output += token + '\n';
+          break;
+
+        case TokenType.ttOperator:
+        case TokenType.ttDot:
+        case TokenType.ttNumeric:
+          output += token;
+          break;
+
+        case TokenType.ttToken:
+        case TokenType.ttAttribute:
+        case TokenType.ttUniform:
+        case TokenType.ttVarying:
+          // Special case: a token following a dot is a swizzle mask. Leave it as-is.
+          if (prevType === TokenType.ttDot) {
+            output += token;
+            break;
+          }
+
+          // For attribute and varying declarations, turn off minification.
+          if (prevPrevType === TokenType.ttAttribute || prevPrevType === TokenType.ttVarying) {
+            this.tokens.reserveKeywords([token]);
+          }
+
+          // Try to minify the token
+          let minToken: string;
+          if (prevPrevType === TokenType.ttUniform) {
+            // This is a special case of a uniform declaration
+            minToken = this.tokens.minifyToken(token, prevToken);
+          } else {
+            // Normal token
+            minToken = this.tokens.minifyToken(token);
+          }
+
+          // When outputting, if the previous token was not an operator or newline, leave a space.
+          if (prevType !== TokenType.ttOperator && prevType !== TokenType.ttPreprocessor) {
+            output += ' ';
+          }
+          output += minToken;
+          break;
+      }
+
+      // Advance to the next token
+      prevPrevType = prevType;
+      prevType = type;
+      prevToken = token;
+    }
+
+    return output;
+  }
+
   private loader: LoaderContext;
 }
 
@@ -368,8 +507,12 @@ export default async function(content: string) {
   let loader = this as LoaderContext;
   loader.async();
 
-  let glsl = new GlslMinify(loader);
-  let program = await glsl.execute(content);
+  try {
+    let glsl = new GlslMinify(loader);
+    let program = await glsl.execute(content);
 
-  loader.callback(null, 'module.exports = ' + JSON.stringify(program));
+    loader.callback(null, 'module.exports = ' + JSON.stringify(program));
+  } catch (err) {
+    loader.emitError(err);
+  }
 };

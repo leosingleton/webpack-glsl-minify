@@ -1,7 +1,7 @@
 // src/index.spec.ts
 // Copyright 2018 Leo C. Singleton IV <leo@leosingleton.com>
 
-import { GlslMinify, TokenMap } from './index';
+import { GlslMinify, TokenMap, TokenType } from './index';
 
 /**
  * Removes whitespace and empty lines from a string
@@ -13,7 +13,10 @@ function trim(content: string): string {
   for (let n = 0; n < lines.length; n++) {
     let line = lines[n].trim();
     if (line.length > 0) {
-      output += lines[n].trim() + '\n';
+      if (output !== '') {
+        output += '\n';
+      }
+      output += line;
     }
   }
 
@@ -51,7 +54,7 @@ describe('GlslMinify', () => {
     let file = await glsl.readFile('tests/define.glsl');
     let output = trim(glsl.preprocessPass2(file.contents));
 
-    let expected = 'void main() { gl_FragColor = vec4(1.0, 1.0, 1.0, 1.0); }\n';
+    let expected = 'void main() { gl_FragColor = vec4(1.0, 1.0, 1.0, 1.0); }';
     expect(output.length).toEqual(expected.length);
     expect(output).toEqual(expected);
     done();
@@ -75,5 +78,29 @@ describe('GlslMinify', () => {
     expect(map.minifyToken('gl_FragColor')).toEqual('gl_FragColor');
     expect(map.minifyToken('int')).toEqual('int');
     expect(map.minifyToken('token3')).toEqual('C');
+  });
+
+  it('Determines token type', () => {
+    expect(GlslMinify.getTokenType('attribute')).toEqual(TokenType.ttAttribute);
+    expect(GlslMinify.getTokenType('.')).toEqual(TokenType.ttDot);
+    expect(GlslMinify.getTokenType('12345')).toEqual(TokenType.ttNumeric);
+    expect(GlslMinify.getTokenType('+=')).toEqual(TokenType.ttOperator);
+    expect(GlslMinify.getTokenType('#version 150')).toEqual(TokenType.ttPreprocessor);
+    expect(GlslMinify.getTokenType('gl_FragColor')).toEqual(TokenType.ttToken);
+    expect(GlslMinify.getTokenType('uniform')).toEqual(TokenType.ttUniform);
+    expect(GlslMinify.getTokenType('varying')).toEqual(TokenType.ttVarying);
+  });
+
+  it('Minifies a vertex shader', async (done) => {
+    let glsl = new GlslMinify(null);
+    let file = await glsl.readFile('tests/minify1.glsl');
+    let output = await glsl.execute(file.contents);
+
+    // Read the expected output
+    let expected = await glsl.readFile('tests/minify1.min.glsl');
+    expect(output.code).toEqual(trim(expected.contents));
+    //expect(output.map['u_flipY'].min).toEqual('A');
+    //expect(output.map['u_flipY'].type).toEqual('float');
+    done();
   });
 });
