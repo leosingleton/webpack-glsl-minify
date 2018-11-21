@@ -453,9 +453,15 @@ export class GlslMinify {
           output += token + '\n';
           break;
 
+        case TokenType.ttNumeric:
+          // Special case for numerics: we can omit a zero following a dot (e.g. "1." is the same as "1.0") in GLSL
+          if (token === '0' && prevType === TokenType.ttDot) {
+            break;
+          }
+          // Fall through to below
+
         case TokenType.ttOperator:
         case TokenType.ttDot:
-        case TokenType.ttNumeric:
           output += token;
           break;
 
