@@ -512,7 +512,8 @@ export class GlslMinify {
           }
 
           // When outputting, if the previous token was not an operator or newline, leave a space.
-          if (prevType !== TokenType.ttOperator && prevType !== TokenType.ttPreprocessor) {
+          if (prevType !== TokenType.ttOperator && prevType !== TokenType.ttPreprocessor &&
+              prevType !== TokenType.ttNone) {
             output += ' ';
           }
           output += minToken;
