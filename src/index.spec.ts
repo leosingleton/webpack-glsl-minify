@@ -1,7 +1,7 @@
 // src/index.spec.ts
 // Copyright 2018 Leo C. Singleton IV <leo@leosingleton.com>
 
-import { GlslMinify } from './index';
+import { GlslMinify, TokenMap } from './index';
 
 /**
  * Removes whitespace and empty lines from a string
@@ -55,5 +55,25 @@ describe('GlslMinify', () => {
     expect(output.length).toEqual(expected.length);
     expect(output).toEqual(expected);
     done();
+  });
+
+  it('Calculates unique minified names', () => {
+    expect(TokenMap.getMinifiedName(0)).toEqual('A');
+    expect(TokenMap.getMinifiedName(1)).toEqual('B');
+    expect(TokenMap.getMinifiedName(25)).toEqual('Z');
+    expect(TokenMap.getMinifiedName(26)).toEqual('a');
+    expect(TokenMap.getMinifiedName(27)).toEqual('b');
+    expect(TokenMap.getMinifiedName(52)).toEqual('AA');
+    expect(TokenMap.getMinifiedName(104)).toEqual('BA');
+  });
+
+  it('Allocates minified names', () => {
+    let map = new TokenMap();
+    expect(map.minifyToken('token1')).toEqual('A');
+    expect(map.minifyToken('token2')).toEqual('B');
+    expect(map.minifyToken('token1')).toEqual('A');
+    expect(map.minifyToken('gl_FragColor')).toEqual('gl_FragColor');
+    expect(map.minifyToken('int')).toEqual('int');
+    expect(map.minifyToken('token3')).toEqual('C');
   });
 });

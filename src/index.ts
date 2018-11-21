@@ -15,13 +15,16 @@ export interface GlslUniform {
   min: string;
 }
 
+/** Map of original unminified names to their minified details */
+type UniformMap = { [original: string]: GlslUniform };
+
 /** Output of the GLSL Minifier */
 export interface GlslProgram {
   /** Minified GLSL code */
   code: string;
 
   /** Uniform variable names. Maps the original unminified name to its minified details. */
-  map: { [original: string]: GlslUniform };
+  map: UniformMap;
 }
 
 export interface GlslFile {
@@ -30,6 +33,144 @@ export interface GlslFile {
 
   /** Unparsed file contents */
   contents: string;
+}
+
+/**
+ * List of GLSL reserved keywords to avoid mangling. We automatically include any gl_ variables.
+ */
+let glslReservedKeywords = [
+  // Basic types
+  'bool', 'double', 'float', 'int', 'uint',
+
+  // Vector types
+  'vec2', 'vec3', 'vec4',
+  'bvec2', 'bvec3', 'bvec4',
+  'dvec2', 'dvec3', 'dvec4',
+  'ivec2', 'ivec3', 'ivec4',
+  'uvec2', 'uvec3', 'uvec4',
+
+  // Matrix types
+  'mat2', 'mat2x2', 'mat2x3', 'mat2x4',
+  'mat3', 'mat3x2', 'mat3x3', 'mat3x4',
+  'mat4', 'mat4x2', 'mat4x3', 'mat4x4',
+
+  // Other type-related keywords
+  'false', 'struct', 'true', 'uniform', 'varying', 'void',
+
+  // Control functions
+  'for',
+
+  // Trig functions
+  'acos', 'asin', 'atan', 'cos', 'degrees', 'radians', 'sin', 'tan',
+
+  // Exponents and logarithms
+  'exp', 'exp2', 'inversesqrt', 'log', 'log2', 'pow', 'sqrt',
+
+  // Clamping and modulus-related funcions
+  'abs', 'ceil', 'clamp', 'floor', 'fract', 'max', 'min', 'mod', 'sign',
+
+  // Boolean functions
+  'all', 'any', 'equal','greaterThan', 'greaterThanEqual', 'lessThan', 'lessThanEqual', 'not', 'notEqual',
+
+  // Vector functions
+  'cross', 'distance', 'dot', 'faceforward', 'length', 'normalize', 'reflect', 'refract',
+
+  // Matrix functions
+  'matrixCompMult',
+  
+  // Interpolation functions
+  'mix', 'step', 'smoothstep',
+
+  // Texture functions
+  'texture2D', 'textureCube'
+];
+
+/**
+ * Helper class to minify tokens and track reserved ones
+ */
+export class TokenMap {
+  constructor() {
+    // GLSL has many reserved keywords. In order to not minify them, we add them to the token map now.
+    this.reserveKeywords(glslReservedKeywords);
+  }
+
+  /**
+   * The underlying token map itself. Although the data type is GlslUniform, it is used for all tokens, not just
+   * uniforms. The type property of GlslUniform is only set for uniforms, however.
+   */
+  private tokens: UniformMap = {};
+
+  /**
+   * Adds keywords to the reserved list to prevent minifying them.
+   * @param keywords 
+   */
+  public reserveKeywords(keywords: string[]): void {
+    for (let n = 0; n < keywords.length; n++) {
+      let keyword = keywords[n];
+      this.tokens[keyword] = { type: undefined, min: keyword };
+    }
+  }
+
+  /**
+   * Number of tokens minified. Used to generate unique names. Although we could be more sophisticated, and count
+   * usage, we simply assign names in order. Few shaders have more than 52 variables (the number of single-letter
+   * variable names), so simple is good enough.
+   */
+  private minifiedTokenCount = 0;
+
+  /**
+   * Converts a token number to a name
+   */
+  public static getMinifiedName(tokenCount: number): string {
+    let num = tokenCount % 52;
+    let offset = (num < 26) ? (num + 65) : (num + 71); // 65 = 'A'; 71 = ('a' - 26)
+    let c = String.fromCharCode(offset);
+
+    // For tokens over 52, recursively add characters
+    let recurse = Math.floor(tokenCount / 52);
+    return (recurse === 0) ? c : (this.getMinifiedName(recurse - 1) + c);
+  }
+
+  /**
+   * Minifies a token
+   * @param name Token name
+   * @param uniformType If the token is a uniform, the data type
+   * @returns Minified token name
+   */
+  public minifyToken(name: string, uniformType?: string): string {
+    // Special-case any tokens starting with "gl_". They should never be minified.
+    if (name.startsWith('gl_')) {
+      return name;
+    }
+
+    // Check whether the token already has an existing minified value
+    let existing = this.tokens[name];
+    if (existing) {
+      return existing.min;
+    }
+
+    // Allocate a new value
+    let min = TokenMap.getMinifiedName(this.minifiedTokenCount++);
+    this.tokens[name] = {
+      min: min,
+      type: uniformType
+    };
+
+    return min;
+  }
+
+  public getUniforms(): UniformMap {
+    // Filter only the tokens that have the type field set
+    let result: UniformMap = {};
+    for (let original in this.tokens) {
+      let token = this.tokens[original];
+      if (token.type) {
+        result[original] = token;
+      }
+    }
+
+    return result;
+  }
 }
 
 export class GlslMinify {
