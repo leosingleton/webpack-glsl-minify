@@ -174,19 +174,24 @@ export class TokenMap {
    * @returns Minified token name
    */
   public minifyToken(name: string, uniformType?: string): string {
-    // Special-case any tokens starting with "gl_". They should never be minified.
-    if (name.startsWith('gl_')) {
-      return name;
-    }
-
     // Check whether the token already has an existing minified value
     let existing = this.tokens[name];
     if (existing) {
+      // In the case of a uniform with mangling explicitly disabled, we may already have an entry from the @nomangle
+      // directive. But still store the type.
+      if (uniformType) {
+        existing.type = uniformType;
+      }
       return existing.min;
     }
 
+    // Mangle the name. Special-case any tokens starting with "gl_". They should never be minified.
+    let min = name;
+    if (!name.startsWith('gl_')) {
+      min = TokenMap.getMinifiedName(this.minifiedTokenCount++);
+    }
+    
     // Allocate a new value
-    let min = TokenMap.getMinifiedName(this.minifiedTokenCount++);
     this.tokens[name] = {
       min: min,
       type: uniformType
