@@ -5,8 +5,9 @@ GLSL program before embedding it in JavaScript.
 
 ## Building
 The build script supports two targets:
+
 * `./build.sh` - Compiles the output to `build/index.js`
-* `./buils.sh test` - Compiles the output and runs unit tests
+* `./build.sh test` - Compiles the output and runs unit tests
 
 ## Usage
 ### Webpack Configuration
