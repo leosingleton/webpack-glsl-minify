@@ -49,7 +49,7 @@ Note that `@define` is not a replacement for `#define`. For minification purpose
 compiler do the macro substitution instead of the Webpack compiler.
 
 #### nomangle Directive
-Disables minification on or more symbols. Example:
+Disables name mangling on one or more symbols. Example:
 ```
 @nomangle symbol1 symbol2
 ```
@@ -59,7 +59,7 @@ The following minification optimizations are performed:
 
 * Removal of comments and whitespace. Both C-style `/* Comment */` and C++-style `// Comment` are supported.
 * Shortening floating point numbers. `1.0` becomes `1.`
-* Minification of symbols. All function names, variables, parameters, and uniforms are included. Built-in GLSL
+* Mangling symbol names. All functions, variables, parameters, and uniforms are renamed to short names. Built-in GLSL
   functions and variables begining with `gl_` are automatically excluded. Attributes and varying variables are also
   excluded, as the names must be consistent across multiple shaders. Additional symbols may be excluded with the
   `@nomangle` directive.
