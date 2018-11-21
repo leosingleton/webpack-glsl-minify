@@ -159,6 +159,9 @@ export class TokenMap {
     return min;
   }
 
+  /**
+   * Returns the uniforms and their associated data types
+   */
   public getUniforms(): UniformMap {
     // Filter only the tokens that have the type field set
     let result: UniformMap = {};
@@ -178,6 +181,9 @@ export class GlslMinify {
     this.loader = loader;
   }
 
+  /** List of tokens minified by the parser */
+  private tokens = new TokenMap();
+
   public async execute(content: string): Promise<GlslProgram> {
     let input: GlslFile = { contents: content };
 
@@ -187,7 +193,7 @@ export class GlslMinify {
 
     return {
       code: pass2,
-      map: {}
+      map: this.tokens.getUniforms()
     };
   }
 
@@ -268,10 +274,27 @@ export class GlslMinify {
   }
 
   /**
-   * The second pass of the preprocessor handles define directives
+   * The second pass of the preprocessor handles nomange and define directives
    */
   public preprocessPass2(content: string): string {
     let output = content;
+
+    // Process @nomangle directives
+    let nomangleRegex = /@nomangle\s(.*)/;
+    while (true) {
+      // Find the next @nomangle directive
+      let match = nomangleRegex.exec(output);
+      if (!match) {
+        break;
+      }
+
+      // Record the keywords
+      let keywords = match[1].split(/\s/);
+      this.tokens.reserveKeywords(keywords);
+
+      // Remove the @nomangle line
+      output = output.replace(nomangleRegex, '');
+    }
 
     // Process @define directives
     let defineRegex = /@define\s(\S+)\s(.*)/;
