@@ -113,11 +113,26 @@ describe('GlslMinify', () => {
     let expected = await glsl.readFile('tests/minify2.min.glsl');
     expect(output.code).toEqual(trim(expected.contents));
     expect(output.map['u_y'].min).toEqual('A');
-    expect(output.map['u_y'].type).toEqual('texture2D');
+    expect(output.map['u_y'].type).toEqual('sampler2D');
     expect(output.map['u_cb'].min).toEqual('B');
-    expect(output.map['u_cb'].type).toEqual('texture2D');
+    expect(output.map['u_cb'].type).toEqual('sampler2D');
     expect(output.map['u_cr'].min).toEqual('C');
-    expect(output.map['u_cr'].type).toEqual('texture2D');
+    expect(output.map['u_cr'].type).toEqual('sampler2D');
+    done();
+  });
+
+  it('Minifies a complex fragment shader', async (done) => {
+    let glsl = new GlslMinify(null);
+    let file = await glsl.readFile('tests/minify3.glsl');
+    let output = await glsl.execute(file.contents);
+
+    // Read the expected output
+    let expected = await glsl.readFile('tests/minify3.min.glsl');
+    expect(output.code).toEqual(trim(expected.contents));
+    expect(output.map['iResolution'].min).toEqual('A');
+    expect(output.map['iResolution'].type).toEqual('vec3');
+    expect(output.map['iChannel0'].min).toEqual('B');
+    expect(output.map['iChannel0'].type).toEqual('sampler2D');
     done();
   });
 });

@@ -5,9 +5,9 @@ precision mediump float;
 // Add the texture coordinates from the vertex shader
 varying vec2 v_texCoord;
 
-uniform texture2D u_y;
-uniform texture2D u_cb;
-uniform texture2D u_cr;
+uniform sampler2D u_y;
+uniform sampler2D u_cb;
+uniform sampler2D u_cr;
 
 /**
  * Convert YCbCr colorspace to RGB

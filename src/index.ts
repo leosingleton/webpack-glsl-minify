@@ -54,6 +54,22 @@ let glslReservedKeywords = [
   'mat3', 'mat3x2', 'mat3x3', 'mat3x4',
   'mat4', 'mat4x2', 'mat4x3', 'mat4x4',
 
+  // Sampler types
+  'sampler1D', 'sampler2D', 'sampler3D', 'samplerCube', 'sampler2DRect',
+  'isampler1D', 'isampler2D', 'isampler3D', 'isamplerCube', 'isampler2DRect',
+  'usampler1D', 'usampler2D', 'usampler3D', 'usamplerCube', 'usampler2DRect',
+
+  'sampler1DArray', 'sampler2DArray', 'samplerCubeArray',
+  'isampler1DArray', 'isampler2DArray', 'isamplerCubeArray',
+  'usampler1DArray', 'usampler2DArray', 'usamplerCubeArray',
+
+  'samplerBuffer', 'sampler2DMS', 'sampler2DMSArray',
+  'isamplerBuffer', 'isampler2DMS', 'isampler2DMSArray',
+  'usamplerBuffer', 'usampler2DMS', 'usampler2DMSArray',
+
+  'sampler1DShadow', 'sampler2DShadow', 'samplerCubeShadow', 'sampler2DRectShadow', 'sampler1DArrayShadow',
+  'sampler2DArrayShadow', 'samplerCubeArrayShadow',
+
   // Other type-related keywords
   'attribute', 'const', 'false', 'invariant', 'struct', 'true', 'uniform', 'varying', 'void',
 
@@ -440,6 +456,11 @@ export class GlslMinify {
 
       switch (type) {
         case TokenType.ttPreprocessor:
+          // Preprocessor directives must always begin on a new line
+          if (output !== '' && !output.endsWith('\n')) {
+            output += '\n';
+          }
+
           // Special case for #define: we want to minify the value being defined
           let defineRegex = /#define\s(\w+)\s(.*)/;
           let subMatch = defineRegex.exec(token);
