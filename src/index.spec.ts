@@ -3,6 +3,23 @@
 
 import { GlslMinify } from './index';
 
+/**
+ * Removes whitespace and empty lines from a string
+ */
+function trim(content: string): string {
+  let lines = content.split('\n');
+
+  let output = '';
+  for (let n = 0; n < lines.length; n++) {
+    let line = lines[n].trim();
+    if (line.length > 0) {
+      output += lines[n].trim() + '\n';
+    }
+  }
+
+  return output;
+}
+
 describe('GlslMinify', () => {
   it('Reads files', async (done) => {
     let glsl = new GlslMinify(null);
@@ -23,8 +40,20 @@ describe('GlslMinify', () => {
     let glsl = new GlslMinify(null);
     let file = await glsl.readFile('tests/include.glsl');
     let output = await glsl.preprocessPass1(file);
-    // Expect two additional newlines: one at the end of every included file and one for the // comment
-    expect(output).toEqual('void main() {}\n\n\n');
+
+    // Expect an additional newline for the // comment after the @include
+    expect(output).toEqual('void main() {}\n\n');
+    done();
+  });
+
+  it('Preprocessor handles @define directives', async (done) => {
+    let glsl = new GlslMinify(null);
+    let file = await glsl.readFile('tests/define.glsl');
+    let output = trim(glsl.preprocessPass2(file.contents));
+
+    let expected = 'void main() { gl_FragColor = vec4(1.0, 1.0, 1.0, 1.0); }\n';
+    expect(output.length).toEqual(expected.length);
+    expect(output).toEqual(expected);
     done();
   });
 });

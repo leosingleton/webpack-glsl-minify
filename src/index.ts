@@ -21,12 +21,12 @@ export interface GlslProgram {
   code: string;
 
   /** Uniform variable names. Maps the original unminified name to its minified details. */
-  uniforms: { [original: string]: GlslUniform };
+  map: { [original: string]: GlslUniform };
 }
 
 export interface GlslFile {
   /** Full path of the file (for resolving further @include directives) */
-  path: string;
+  path?: string;
 
   /** Unparsed file contents */
   contents: string;
@@ -38,9 +38,15 @@ export class GlslMinify {
   }
 
   public async execute(content: string): Promise<GlslProgram> {
+    let input: GlslFile = { contents: content };
+
+    let pass1 = await this.preprocessPass1(input);
+
+    let pass2 = this.preprocessPass2(pass1);
+
     return {
-      code: 'Hello World!',
-      uniforms: {}
+      code: pass2,
+      map: {}
     };
   }
 
@@ -80,7 +86,7 @@ export class GlslMinify {
   }
 
   /**
-   * The first pass of the preprocessor removes comments and handles @include directives
+   * The first pass of the preprocessor removes comments and handles include directives
    */
   public async preprocessPass1(content: GlslFile): Promise<string> {
     let output = content.contents;
@@ -97,7 +103,7 @@ export class GlslMinify {
     output = output.replace(cppStyleRegex, '\n');
 
     // Process @include directive
-    let includeRegex = /@include (.*)/;
+    let includeRegex = /@include\s(.*)/;
     while (true) {
       // Find the next @include directive
       let match = includeRegex.exec(output);
@@ -114,8 +120,59 @@ export class GlslMinify {
       let includeContent = await this.preprocessPass1(includeFile);
 
       // Replace the @include directive with the file contents
-      output = output.replace(includeRegex, includeContent + '\n');
+      output = output.replace(includeRegex, includeContent);
     }
+
+    return output;
+  }
+
+  /**
+   * The second pass of the preprocessor handles define directives
+   */
+  public preprocessPass2(content: string): string {
+    let output = content;
+
+    // Process @define directives
+    let defineRegex = /@define\s(\S+)\s(.*)/;
+    while (true) {
+      // Find the next @define directive
+      let match = defineRegex.exec(output);
+      if (!match) {
+        break;
+      }
+      let defineMacro = match[1];
+      let replaceValue = match[2];
+
+      // Remove the @define line
+      output = output.replace(defineRegex, '');
+
+      // Replace all instances of the macro with its value
+      //
+      // BUGBUG: We start at the beginning of the file, which means we could do replacements prior to the @define
+      //   directive. This is unlikely to happen in real code but will cause some weird behaviors if it does.
+      let offset = output.indexOf(defineMacro);
+      while (offset >= 0 && offset < output.length) {
+        // Ensure that the macro isn't appearing within a larger token
+        let nextOffset = offset + defineMacro.length;
+        let nextChar = output[nextOffset];
+        if (/\w/.test(nextChar)) {
+          // Ignore. Part of a larger token. Begin searching again at the next non-word.
+          do {
+            nextChar = output[++nextOffset];
+          } while (nextChar && /\w/.test(nextChar));
+          offset = nextOffset;
+        } else {
+          // Replace
+          let begin = output.substring(0, offset);
+          let end = output.substring(nextOffset);
+          output = begin + replaceValue + end;
+          offset += replaceValue.length;
+        }
+
+        // Advance the offset
+        offset = output.indexOf(defineMacro, offset);
+      }
+    } 
 
     return output;
   }
