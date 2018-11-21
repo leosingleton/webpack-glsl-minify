@@ -30,15 +30,15 @@ resolve: {
 The preprocessor uses an `@` symbol to distinguish commands executed at Webpack compile time versus shader compile time.
 The following commands are supported:
 
-#### @include
+#### include Directive
 Includes another GLSL file. Example:
-```glsl
+```
 @include "../path/another-file.glsl"
 ```
 
-#### @define
+#### define Directive
 Defines a macro which will be substituted elsewhere in the code. Example:
-```glsl
+```
 @define PI 3.1415
 // ....
 float angle = 2.0 * PI;
@@ -47,9 +47,9 @@ float angle = 2.0 * PI;
 Note that `@define` is not a replacement for `#define`. For minification purposes, it is often better to let the shader
 compiler do the macro substitution instead of the Webpack compiler.
 
-#### @nomangle
+#### nomangle Directive
 Disables minification on or more symbols. Example:
-```glsl
+```
 @nomangle symbol1 symbol2
 ```
 
