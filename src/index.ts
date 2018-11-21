@@ -79,7 +79,10 @@ export class GlslMinify {
     });
   }
 
-  public async preprocess(content: GlslFile): Promise<string> {
+  /**
+   * The first pass of the preprocessor removes comments and handles @include directives
+   */
+  public async preprocessPass1(content: GlslFile): Promise<string> {
     let output = content.contents;
 
     // Remove carriage returns. Use newlines only.
@@ -92,6 +95,27 @@ export class GlslMinify {
     // Remove C++ style comments
     let cppStyleRegex = /\/\/[^\n]*/g;
     output = output.replace(cppStyleRegex, '\n');
+
+    // Process @include directive
+    let includeRegex = /@include (.*)/;
+    while (true) {
+      // Find the next @include directive
+      let match = includeRegex.exec(output);
+      if (!match) {
+        break;
+      }
+      let includeFilename = JSON.parse(match[1]);
+
+      // Read the file to include
+      let currentPath = content.path ? dirname(content.path) : undefined;
+      let includeFile = await this.readFile(includeFilename, currentPath);
+
+      // Parse recursively, as the included file may also have @include directives
+      let includeContent = await this.preprocessPass1(includeFile);
+
+      // Replace the @include directive with the file contents
+      output = output.replace(includeRegex, includeContent + '\n');
+    }
 
     return output;
   }

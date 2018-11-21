@@ -14,8 +14,17 @@ describe('GlslMinify', () => {
   it('Preprocessor removes comments', async (done) => {
     let glsl = new GlslMinify(null);
     let file = await glsl.readFile('tests/comments.glsl');
-    let output = await glsl.preprocess(file);
+    let output = await glsl.preprocessPass1(file);
     expect(output).toEqual('void main() {}\n');
+    done();
+  });
+
+  it('Preprocessor handles @include directives', async (done) => {
+    let glsl = new GlslMinify(null);
+    let file = await glsl.readFile('tests/include.glsl');
+    let output = await glsl.preprocessPass1(file);
+    // Expect two additional newlines: one at the end of every included file and one for the // comment
+    expect(output).toEqual('void main() {}\n\n\n');
     done();
   });
 });
