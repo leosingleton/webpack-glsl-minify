@@ -60,6 +60,17 @@ describe('GlslMinify', () => {
     done();
   });
 
+  it('Preprocessor handles @const directives', async (done) => {
+    let glsl = new GlslMinify(null);
+    let file = await glsl.readFile('tests/const.glsl');
+    let output = trim(glsl.preprocessPass2(file.contents));
+
+    let expected = 'const float color=$0$;\nvoid main() { gl_FragColor = vec4(vec3(color), 1.0); }';
+    expect(output.length).toEqual(expected.length);
+    expect(output).toEqual(expected);
+    done();
+  });
+
   it('Calculates unique minified names', () => {
     expect(TokenMap.getMinifiedName(0)).toEqual('A');
     expect(TokenMap.getMinifiedName(1)).toEqual('B');
@@ -98,9 +109,9 @@ describe('GlslMinify', () => {
 
     // Read the expected output
     let expected = await glsl.readFile('tests/minify1.min.glsl');
-    expect(output.code).toEqual(trim(expected.contents));
-    expect(output.map['u_flipY'].min).toEqual('A');
-    expect(output.map['u_flipY'].type).toEqual('float');
+    expect(output.sourceCode).toEqual(trim(expected.contents));
+    expect(output.uniforms['u_flipY'].variableName).toEqual('A');
+    expect(output.uniforms['u_flipY'].variableType).toEqual('float');
     done();
   });
 
@@ -111,13 +122,13 @@ describe('GlslMinify', () => {
 
     // Read the expected output
     let expected = await glsl.readFile('tests/minify2.min.glsl');
-    expect(output.code).toEqual(trim(expected.contents));
-    expect(output.map['u_y'].min).toEqual('A');
-    expect(output.map['u_y'].type).toEqual('sampler2D');
-    expect(output.map['u_cb'].min).toEqual('B');
-    expect(output.map['u_cb'].type).toEqual('sampler2D');
-    expect(output.map['u_cr'].min).toEqual('C');
-    expect(output.map['u_cr'].type).toEqual('sampler2D');
+    expect(output.sourceCode).toEqual(trim(expected.contents));
+    expect(output.uniforms['u_y'].variableName).toEqual('A');
+    expect(output.uniforms['u_y'].variableType).toEqual('sampler2D');
+    expect(output.uniforms['u_cb'].variableName).toEqual('B');
+    expect(output.uniforms['u_cb'].variableType).toEqual('sampler2D');
+    expect(output.uniforms['u_cr'].variableName).toEqual('C');
+    expect(output.uniforms['u_cr'].variableType).toEqual('sampler2D');
     done();
   });
 
@@ -128,11 +139,25 @@ describe('GlslMinify', () => {
 
     // Read the expected output
     let expected = await glsl.readFile('tests/minify3.min.glsl');
-    expect(output.code).toEqual(trim(expected.contents));
-    expect(output.map['iResolution'].min).toEqual('A');
-    expect(output.map['iResolution'].type).toEqual('vec3');
-    expect(output.map['iChannel0'].min).toEqual('B');
-    expect(output.map['iChannel0'].type).toEqual('sampler2D');
+    expect(output.sourceCode).toEqual(trim(expected.contents));
+    expect(output.uniforms['iResolution'].variableName).toEqual('A');
+    expect(output.uniforms['iResolution'].variableType).toEqual('vec3');
+    expect(output.uniforms['iChannel0'].variableName).toEqual('B');
+    expect(output.uniforms['iChannel0'].variableType).toEqual('sampler2D');
     done();
+  });
+
+  it('Stringifies an object', () => {
+    let myobj = {
+      prop1: 'hello',
+      prop2: {
+        vals: [0, 1, 2],
+        num: 1.23
+      }
+    };
+
+    let str = GlslMinify.stringify(myobj);
+    let expected = '{prop1:"hello",prop2:{vals:[0,1,2],num:1.23}}';
+    expect(str).toEqual(expected);
   });
 });

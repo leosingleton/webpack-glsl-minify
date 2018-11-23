@@ -54,6 +54,18 @@ Disables name mangling on one or more symbols. Example:
 @nomangle symbol1 symbol2
 ```
 
+#### const Directive
+Defines a constant variable with a unique substitution value that can be used to search-and-replace to initialize the
+constant. Example:
+```
+@const int my_int
+```
+will produce
+```glsl
+const int A=$0$;
+```
+and the mapping from `my_int` to the substitution value `$0$` will be returned in the output.
+
 ### Minification
 The following minification optimizations are performed:
 
@@ -68,15 +80,21 @@ The following minification optimizations are performed:
 As output, the following JavaScript code is produced:
 ```javascript
 module.exports = {
-  "code": "uniform vec3 A;uniform float B;/* ... More minified GLSL code here */",
-  "map": { // Map of minified uniform variables
-    "uniform1": {     // Unminified uniform name
-      "min": "A",     // Minified uniform name
-      "type": "vec3"  // Type of the uniform
+  sourceCode: "uniform vec3 A;uniform float B;/* ... More minified GLSL code here */",
+  uniforms: { // Map of minified uniform variables
+    uniform1: {             // Unminified uniform name
+      variableName: "A",    // Minified uniform name
+      variableType: "vec3"  // Type of the uniform
     },
-    "uniform2": {
-      "min": "B",
-      "type": "float"
+    uniform2: {
+      min: "B",
+      type: "float"
+    } // ...
+  },
+  consts: { // Map of minified const variables
+    const1: {               // Unminified const name
+      variableName: "$0$",  // Substitution value to replace to initialize the const
+      variableType: "vec2"  // Type of the const
     } // ...
   }
 };

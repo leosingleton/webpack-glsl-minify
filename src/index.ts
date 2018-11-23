@@ -7,24 +7,27 @@ import LoaderContext = loader.LoaderContext;
 import { readFile } from 'fs';
 import { dirname } from 'path';
 
-export interface GlslUniform {
+export interface GlslVariable {
   /** Variable type, e.g. 'vec3' or 'float' */
-  type: string;
+  variableType: string;
 
   /** Minified variable name */
-  min: string;
+  variableName: string;
 }
 
 /** Map of original unminified names to their minified details */
-type UniformMap = { [original: string]: GlslUniform };
+type VariableMap = { [original: string]: GlslVariable };
 
 /** Output of the GLSL Minifier */
 export interface GlslProgram {
   /** Minified GLSL code */
-  code: string;
+  sourceCode: string;
 
   /** Uniform variable names. Maps the original unminified name to its minified details. */
-  map: UniformMap;
+  uniforms: VariableMap;
+
+  /** Constant variables. Maps the orignal unminified name to the substitution value. */
+  consts: VariableMap;
 }
 
 export interface GlslFile {
@@ -134,7 +137,7 @@ export class TokenMap {
    * The underlying token map itself. Although the data type is GlslUniform, it is used for all tokens, not just
    * uniforms. The type property of GlslUniform is only set for uniforms, however.
    */
-  private tokens: UniformMap = {};
+  private tokens: VariableMap = {};
 
   /**
    * Adds keywords to the reserved list to prevent minifying them.
@@ -143,7 +146,7 @@ export class TokenMap {
   public reserveKeywords(keywords: string[]): void {
     for (let n = 0; n < keywords.length; n++) {
       let keyword = keywords[n];
-      this.tokens[keyword] = { type: undefined, min: keyword };
+      this.tokens[keyword] = { variableType: undefined, variableName: keyword };
     }
   }
 
@@ -180,21 +183,22 @@ export class TokenMap {
       // In the case of a uniform with mangling explicitly disabled, we may already have an entry from the @nomangle
       // directive. But still store the type.
       if (uniformType) {
-        existing.type = uniformType;
+        existing.variableType = uniformType;
       }
-      return existing.min;
+      return existing.variableName;
     }
 
-    // Mangle the name. Special-case any tokens starting with "gl_". They should never be minified.
+    // Mangle the name. Special-case any tokens starting with "gl_". They should never be minified. Likewise, never
+    // mangle substitution values, which start and end with "$".
     let min = name;
-    if (!name.startsWith('gl_')) {
+    if (!name.startsWith('gl_') && name.indexOf('$') === -1) {
       min = TokenMap.getMinifiedName(this.minifiedTokenCount++);
     }
     
     // Allocate a new value
     this.tokens[name] = {
-      min: min,
-      type: uniformType
+      variableName: min,
+      variableType: uniformType
     };
 
     return min;
@@ -203,12 +207,12 @@ export class TokenMap {
   /**
    * Returns the uniforms and their associated data types
    */
-  public getUniforms(): UniformMap {
+  public getUniforms(): VariableMap {
     // Filter only the tokens that have the type field set
-    let result: UniformMap = {};
+    let result: VariableMap = {};
     for (let original in this.tokens) {
       let token = this.tokens[original];
-      if (token.type) {
+      if (token.variableType) {
         result[original] = token;
       }
     }
@@ -266,8 +270,9 @@ export class GlslMinify {
     let pass3 = this.minifier(pass2);
 
     return {
-      code: pass3,
-      map: this.tokens.getUniforms()
+      sourceCode: pass3,
+      uniforms: this.tokens.getUniforms(),
+      consts: this.constValues
     };
   }
 
@@ -324,7 +329,7 @@ export class GlslMinify {
     output = output.replace(cppStyleRegex, '\n');
 
     // Process @include directive
-    let includeRegex = /@include\s(.*)/;
+    let includeRegex = /@include\s+(.*)/;
     while (true) {
       // Find the next @include directive
       let match = includeRegex.exec(output);
@@ -345,6 +350,25 @@ export class GlslMinify {
     }
 
     return output;
+  }
+
+  private constValues: VariableMap = {};
+
+  /**
+   * Substitution values are of the form "$0$"
+   */
+  private substitutionValueCount = 0;
+
+  private assignSubstitionValue(constName: string, constType: string): string {
+    let substitutionValue = '$' + (this.substitutionValueCount++) + '$';
+    this.tokens.reserveKeywords([substitutionValue]);
+
+    this.constValues[constName] = {
+      variableName: substitutionValue,
+      variableType: constType
+    };
+
+    return substitutionValue;
   }
 
   /**
@@ -412,6 +436,31 @@ export class GlslMinify {
       }
     } 
 
+    // Process @const directives
+    let constRegex = /@const\s+(.*)/;
+    while (true) {
+      // Find the next @const directive
+      let match = constRegex.exec(output);
+      if (!match) {
+        break;
+      }
+
+      // Parse the tokens
+      let parts = match[1].split(/\s/);
+      if (parts.length !== 2) {
+        throw new Error('@const directives require two parameters');
+      }
+      let constType = parts[0];
+      let constName = parts[1];
+
+      // Assign a substitution value
+      let substitutionValue = this.assignSubstitionValue(constName, constType);
+
+      // Replace the directive with a constant declaration
+      let newCode = 'const ' + constType + ' ' + constName + '=' + substitutionValue + ';';
+      output = output.replace(constRegex, newCode);
+    }
+    
     return output;
   }
 
@@ -444,11 +493,11 @@ export class GlslMinify {
     let output = '';
 
     // The token regex looks for any of four items:
-    //  1) An alphanumeric token (\w+), which may include underscores
+    //  1) An alphanumeric token (\w+), which may include underscores (or $ for substitution values)
     //  2) One or more operators (non-alphanumeric, non-dot)
     //  3) A dot operator
     //  4) GLSL preprocessor directive beginning with #
-    let tokenRegex = /\w+|[^\s\w#.]+|\.|#.*/g;
+    let tokenRegex = /[\w$]+|[^\s\w#.]+|\.|#.*/g;
 
     // Minifying requires a simple state machine the lookbacks to the previous two tokens
     let match: string[]
@@ -534,6 +583,39 @@ export class GlslMinify {
     return output;
   }
 
+  /** Similar to JSON.stringify(), except without double-quotes around property names */
+  public static stringify(obj: any): string {
+    if (Array.isArray(obj)) {
+      let output = '[';
+      let isFirst = true;
+      for (let n = 0; n < obj.length; n++) {
+        let value = obj[n];
+        if (!isFirst) {
+          output += ',';
+        }
+        output += this.stringify(value);
+        isFirst = false;
+      }
+      output += ']';
+      return output;
+    } else if (typeof(obj) === 'object') {
+      let output = '{';
+      let isFirst = true;
+      for (let prop in obj) {
+        let value = obj[prop];
+        if (!isFirst) {
+          output += ',';
+        }
+        output += prop + ':' + this.stringify(value);
+        isFirst = false;
+      }
+      output += '}';
+      return output;
+    } else {
+      return JSON.stringify(obj);
+    }
+  }
+
   private loader: LoaderContext;
 }
 
@@ -545,7 +627,7 @@ export default async function(content: string) {
     let glsl = new GlslMinify(loader);
     let program = await glsl.execute(content);
 
-    loader.callback(null, 'module.exports = ' + JSON.stringify(program));
+    loader.callback(null, 'module.exports = ' + GlslMinify.stringify(program));
   } catch (err) {
     loader.emitError(err);
   }
