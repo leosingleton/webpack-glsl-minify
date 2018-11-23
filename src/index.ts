@@ -354,7 +354,7 @@ export class GlslMinify {
     let output = content;
 
     // Process @nomangle directives
-    let nomangleRegex = /@nomangle\s(.*)/;
+    let nomangleRegex = /@nomangle\s+(.*)/;
     while (true) {
       // Find the next @nomangle directive
       let match = nomangleRegex.exec(output);
@@ -371,7 +371,7 @@ export class GlslMinify {
     }
 
     // Process @define directives
-    let defineRegex = /@define\s(\S+)\s(.*)/;
+    let defineRegex = /@define\s+(\S+)\s+(.*)/;
     while (true) {
       // Find the next @define directive
       let match = defineRegex.exec(output);
