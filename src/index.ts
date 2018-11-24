@@ -621,14 +621,15 @@ export class GlslMinify {
 
 export default async function(content: string) {
   let loader = this as LoaderContext;
-  loader.async();
+  let callback = loader.async();
 
   try {
     let glsl = new GlslMinify(loader);
     let program = await glsl.execute(content);
+    let code = 'module.exports = ' + GlslMinify.stringify(program);
 
-    loader.callback(null, 'module.exports = ' + GlslMinify.stringify(program));
+    callback(null, code);
   } catch (err) {
-    loader.emitError(err);
+    callback(err);
   }
 };
