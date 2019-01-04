@@ -3,10 +3,12 @@
   "version": "1.0.0",
   "author": "Leo C. Singleton IV <leo@leosingleton.com>",
   "description": "GLSL Loader, Preprocessor, and Minifier for Webpack",
-  "private": true,
+  "homepage": "https://github.com/leosingleton/webpack-glsl-minify",
+  "license": "MIT",
+  "private": false,
   "repository": {
     "type": "git",
-    "url": "https://leosingleton@bitbucket.org/leosingleton/webpack-glsl-minify.git"
+    "url": "https://github.com/leosingleton/webpack-glsl-minify.git"
   },
   "dependencies": {
     "@types/jasmine-node": "^1.14.34",
