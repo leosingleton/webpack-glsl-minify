@@ -20,5 +20,6 @@
   },
   "scripts": {
     "build": "./build.sh"
-  }
+  },
+  "main": "./build/index.js"
 }
