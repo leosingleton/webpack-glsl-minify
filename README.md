@@ -3,6 +3,11 @@ webpack-glsl-minify is a loader for Webpack that handles GLSL files. In addition
 into a JavaScript string, it also has a preprocessor which executes at compile time, and a minifier which shrinks the
 GLSL program before embedding it in JavaScript.
 
+## Install
+```
+npm install --save-dev webpack-glsl-minify
+```
+
 ## Usage
 ### Webpack Configuration
 To use, add the following to your webpack.js config file:
@@ -97,8 +102,8 @@ module.exports = {
 The map of uniforms is included to make it easy for the JavaScript code compiling and executing the WebGL shader to
 set the uniform values, even after minification.
 
-## Compiling
-The build script supports two targets:
+## Compiling From Source
+The source code is written in TypeScript. The build script supports two targets:
 
 * `./build.sh` - Compiles the output to `build/index.js`
 * `./build.sh test` - Compiles the output and runs unit tests
