@@ -86,8 +86,8 @@ module.exports = {
       variableType: "vec3"  // Type of the uniform
     },
     uniform2: {
-      min: "B",
-      type: "float"
+      variableName: "B",
+      variableType: "float"
     } // ...
   },
   consts: { // Map of minified const variables
