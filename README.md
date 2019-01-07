@@ -1,4 +1,6 @@
 # GLSL Loader, Preprocessor, and Minifier for Webpack
+[![Build Status](https://dev.azure.com/leosingleton/webpack-glsl-minify/_apis/build/status/leosingleton.webpack-glsl-minify?branchName=master)](https://dev.azure.com/leosingleton/webpack-glsl-minify/_build/latest?definitionId=1?branchName=master)
+
 webpack-glsl-minify is a loader for Webpack that handles GLSL files. In addition to simply loading the GLSL program
 into a JavaScript string, it also has a preprocessor which executes at compile time, and a minifier which shrinks the
 GLSL program before embedding it in JavaScript.
@@ -107,3 +109,7 @@ The source code is written in TypeScript. The build script supports two targets:
 
 * `./build.sh` - Compiles the output to `build/index.js`
 * `./build.sh test` - Compiles the output and runs unit tests
+
+## License
+Copyright (c) 2018-2019 [Leo C. Singleton IV](https://www.leosingleton.com/).
+This software is licensed under the MIT License.
