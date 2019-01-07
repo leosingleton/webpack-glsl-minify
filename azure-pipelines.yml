@@ -14,9 +14,11 @@ steps:
 
 - script: |
     npm install
-    npm run build
+  displayName: 'npm install'
+
+- script: |
     npm run build test
-  displayName: 'npm install and build and test'
+  displayName: 'Compile and Execute Unit Tests'
 
 - task: PublishBuildArtifacts@1
   inputs:
