@@ -17,3 +17,7 @@ steps:
     npm run build
     npm run build test
   displayName: 'npm install and build and test'
+
+- task: PublishBuildArtifacts@1
+  inputs:
+    PathToPublish: '$(System.DefaultWorkingDirectory)'
