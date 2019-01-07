@@ -1,8 +1,3 @@
-# Node.js
-# Build a general Node.js project with npm.
-# Add steps that analyze code, save build artifacts, deploy, and more:
-# https://docs.microsoft.com/azure/devops/pipelines/languages/javascript
-
 pool:
   vmImage: 'Ubuntu-16.04'
 
@@ -25,6 +20,15 @@ steps:
     testResultsFormat: 'JUnit'
     testResultsFiles: 'build/results.xml'
 
+- task: CopyFiles@2
+  inputs:
+    sourceFolder: '$(Build.SourcesDirectory)'
+    contents: |
+      **/**
+      !**/node_modules/**
+    targetFolder: '$(Build.ArtifactStagingDirectory)'
+
 - task: PublishBuildArtifacts@1
   inputs:
-    PathToPublish: '$(System.DefaultWorkingDirectory)/build'
+    pathToPublish: '$(Build.ArtifactStagingDirectory)'
+    artifactName: build
