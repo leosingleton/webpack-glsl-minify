@@ -10,5 +10,5 @@ TARGET="${1:-debug}"
 
 if [[ "$TARGET" == "test" ]]; then
   # Execute unit tests on the test target
-  ./node_modules/jasmine-node/bin/jasmine-node ./build/index.spec.js
+  ./node_modules/jasmine-xml-reporter/bin/jasmine.js ./build/index.spec.js --junitreport --output=build/
 fi

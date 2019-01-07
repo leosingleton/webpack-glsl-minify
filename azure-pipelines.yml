@@ -20,6 +20,11 @@ steps:
     npm run build test
   displayName: 'Compile and Execute Unit Tests'
 
+- task: PublishTestResults@2
+  inputs:
+    testResultsFormat: 'JUnit'
+    testResultsFiles: 'build/results.xml'
+
 - task: PublishBuildArtifacts@1
   inputs:
     PathToPublish: '$(System.DefaultWorkingDirectory)/build'

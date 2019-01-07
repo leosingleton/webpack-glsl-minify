@@ -13,7 +13,8 @@
   "devDependencies": {
     "@types/jasmine-node": "^1.14.34",
     "@types/webpack": "^4.4.19",
-    "jasmine-node": "^2.0.1",
+    "jasmine": "^3.3.1",
+    "jasmine-xml-reporter": "^1.2.1",
     "typescript": "^3.1.6"
   },
   "scripts": {
