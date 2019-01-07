@@ -3,5 +3,5 @@
 set -e # Break on errors
 set -x # Enable command echo
 
-pwd
+echo `pwd` >&2
 npm publish
