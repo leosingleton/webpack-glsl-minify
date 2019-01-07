@@ -20,4 +20,4 @@ steps:
 
 - task: PublishBuildArtifacts@1
   inputs:
-    PathToPublish: '$(System.DefaultWorkingDirectory)'
+    PathToPublish: '$(System.DefaultWorkingDirectory)/build/**'
