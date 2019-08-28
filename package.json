@@ -12,10 +12,10 @@
   },
   "devDependencies": {
     "@types/jasmine-node": "^1.14.34",
-    "@types/webpack": "^4.4.34",
+    "@types/webpack": "^4.39.1",
     "jasmine": "^3.4.0",
     "jasmine-xml-reporter": "^1.2.1",
-    "typescript": "^3.5.2"
+    "typescript": "^3.5.3"
   },
   "scripts": {
     "build": "./build.sh"
