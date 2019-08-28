@@ -16,7 +16,7 @@ export interface GlslVariable {
 }
 
 /** Map of original unminified names to their minified details */
-type VariableMap = { [original: string]: GlslVariable };
+export type VariableMap = { [original: string]: GlslVariable };
 
 /** Output of the GLSL Minifier */
 export interface GlslProgram {

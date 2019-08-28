@@ -18,7 +18,8 @@
     "typescript": "^3.5.3"
   },
   "scripts": {
-    "build": "./build.sh"
+    "build": "npx tsc",
+    "test": "./node_modules/jasmine-xml-reporter/bin/jasmine.js ./build/index.spec.js --junitreport --output=build/"
   },
   "files": [
     "build/index.js"

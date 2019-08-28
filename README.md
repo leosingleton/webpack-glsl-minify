@@ -105,10 +105,10 @@ The map of uniforms is included to make it easy for the JavaScript code compilin
 set the uniform values, even after minification.
 
 ## Compiling From Source
-The source code is written in TypeScript. The build script supports two targets:
+The source code is written in TypeScript. The build script supports two commands:
 
-* `./build.sh` - Compiles the output to `build/index.js`
-* `./build.sh test` - Compiles the output and runs unit tests
+* `npm run build` - Compiles the output to `build/`
+* `npm run test` - Runs unit tests
 
 ## License
 Copyright (c) 2018-2019 [Leo C. Singleton IV](https://www.leosingleton.com/).
