@@ -250,8 +250,8 @@ export enum TokenType {
 /** Implementation of NodeJS's readFile() API. */
 export type ReadFileImpl = (filename: string, directory?: string) => Promise<GlslFile>;
 
-/** Stub implementation to work in browsers and non-NodeJS environments */
-export function nullReadFile(filename: string, directory?: string): Promise<GlslFile> {
+/** Stub implementation of NodeJS's readFile() API to work in browsers and non-NodeJS environments */
+function nullReadFile(filename: string, directory?: string): Promise<GlslFile> {
   return new Promise<GlslFile>((resolve, reject) => {
     reject(new Error('Not Supported'));
   })
@@ -260,7 +260,7 @@ export function nullReadFile(filename: string, directory?: string): Promise<Glsl
 /** Implementation of NodeJS's dirname() API */
 export type DirnameImpl = (p: string) => string;
 
-/** Stub implementation to work in browsers and non-NodeJS environments */
+/** Stub implementation of NodeJS's dirname() API to work in browsers and non-NodeJS environments */
 export function nullDirname(p: string): string {
   return undefined;
 }
@@ -276,7 +276,7 @@ export class GlslMinify {
    *    package: nodeDirname() for NodeJS and Webpack and nullDirname() for browsers and other environments that don't
    *    support reading files from the local disk.
    */
-  constructor(readFile: ReadFileImpl, dirname: DirnameImpl) {
+  constructor(readFile = nullReadFile, dirname = nullDirname) {
     this.readFile = readFile;
     this.dirname = dirname;
   }
