@@ -1,7 +1,7 @@
 // src/index.spec.ts
 // Copyright 2018-2019 Leo C. Singleton IV <leo@leosingleton.com>
 
-import { GlslMinify, TokenMap, TokenType, nodeReadFile, ReadFileImpl } from './minify';
+import { GlslMinify, GlslFile, TokenMap, TokenType, ReadFileImpl, nodeReadFile } from './minify';
 
 /**
  * Removes whitespace and empty lines from a string
@@ -28,6 +28,18 @@ class GlslMinifyInternal extends GlslMinify {
   public constructor(readFile: ReadFileImpl) {
     super(readFile);
     this.readFile = readFile;
+  }
+
+  public preprocessPass1(content: GlslFile): Promise<string> {
+    return super.preprocessPass1(content);
+  }
+
+  public preprocessPass2(content: string): string {
+    return super.preprocessPass2(content);
+  }
+
+  public static getTokenType(token: string): TokenType {
+    return super.getTokenType(token);
   }
 
   public readFile: ReadFileImpl;
@@ -102,14 +114,14 @@ describe('GlslMinify', () => {
   });
 
   it('Determines token type', () => {
-    expect(GlslMinify.getTokenType('attribute')).toEqual(TokenType.ttAttribute);
-    expect(GlslMinify.getTokenType('.')).toEqual(TokenType.ttDot);
-    expect(GlslMinify.getTokenType('12345')).toEqual(TokenType.ttNumeric);
-    expect(GlslMinify.getTokenType('+=')).toEqual(TokenType.ttOperator);
-    expect(GlslMinify.getTokenType('#version 150')).toEqual(TokenType.ttPreprocessor);
-    expect(GlslMinify.getTokenType('gl_FragColor')).toEqual(TokenType.ttToken);
-    expect(GlslMinify.getTokenType('uniform')).toEqual(TokenType.ttUniform);
-    expect(GlslMinify.getTokenType('varying')).toEqual(TokenType.ttVarying);
+    expect(GlslMinifyInternal.getTokenType('attribute')).toEqual(TokenType.ttAttribute);
+    expect(GlslMinifyInternal.getTokenType('.')).toEqual(TokenType.ttDot);
+    expect(GlslMinifyInternal.getTokenType('12345')).toEqual(TokenType.ttNumeric);
+    expect(GlslMinifyInternal.getTokenType('+=')).toEqual(TokenType.ttOperator);
+    expect(GlslMinifyInternal.getTokenType('#version 150')).toEqual(TokenType.ttPreprocessor);
+    expect(GlslMinifyInternal.getTokenType('gl_FragColor')).toEqual(TokenType.ttToken);
+    expect(GlslMinifyInternal.getTokenType('uniform')).toEqual(TokenType.ttUniform);
+    expect(GlslMinifyInternal.getTokenType('varying')).toEqual(TokenType.ttVarying);
   });
 
   it('Minifies a vertex shader', async (done) => {

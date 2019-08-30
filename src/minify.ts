@@ -335,7 +335,7 @@ export class GlslMinify {
   /**
    * The first pass of the preprocessor removes comments and handles include directives
    */
-  public async preprocessPass1(content: GlslFile): Promise<string> {
+  protected async preprocessPass1(content: GlslFile): Promise<string> {
     let output = content.contents;
 
     // Remove carriage returns. Use newlines only.
@@ -395,7 +395,7 @@ export class GlslMinify {
   /**
    * The second pass of the preprocessor handles nomange and define directives
    */
-  public preprocessPass2(content: string): string {
+  protected preprocessPass2(content: string): string {
     let output = content;
 
     // Process @nomangle directives
@@ -486,7 +486,7 @@ export class GlslMinify {
   }
 
   /** Determines the token type of a token string */
-  public static getTokenType(token: string): TokenType {
+  protected static getTokenType(token: string): TokenType {
     if (token === 'attribute') {
       return TokenType.ttAttribute;
     } else if (token === 'uniform') {
@@ -509,7 +509,7 @@ export class GlslMinify {
   /**
    * The final pass consists of the actual minifier itself
    */
-  public minifier(content: string): string {
+  protected minifier(content: string): string {
     // Unlike the previous passes, on this one, we start with an empty output and build it up
     let output = '';
 
