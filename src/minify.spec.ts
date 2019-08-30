@@ -1,7 +1,7 @@
 // src/index.spec.ts
-// Copyright 2018 Leo C. Singleton IV <leo@leosingleton.com>
+// Copyright 2018-2019 Leo C. Singleton IV <leo@leosingleton.com>
 
-import { GlslMinify, TokenMap, TokenType } from './index';
+import { GlslMinify, TokenMap, TokenType } from './minify';
 
 /**
  * Removes whitespace and empty lines from a string
