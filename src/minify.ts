@@ -4,6 +4,7 @@
 import { loader } from 'webpack';
 import LoaderContext = loader.LoaderContext;
 
+import { getOptions } from 'loader-utils';
 import { readFile } from 'fs';
 import { dirname } from 'path';
 
@@ -643,6 +644,7 @@ export class GlslMinify {
 export async function webpackLoader(content: string): Promise<void> {
   let loader = this as LoaderContext;
   let callback = loader.async();
+  let options = getOptions(this);
 
   try {
     let glsl = new GlslMinify((filename, directory) => webpackReadFile(loader, filename, directory));
