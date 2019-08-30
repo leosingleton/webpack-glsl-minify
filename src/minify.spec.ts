@@ -1,7 +1,7 @@
 // src/index.spec.ts
 // Copyright 2018-2019 Leo C. Singleton IV <leo@leosingleton.com>
 
-import { GlslMinify, TokenMap, TokenType } from './minify';
+import { GlslMinify, TokenMap, TokenType, nodeReadFile, ReadFileImpl } from './minify';
 
 /**
  * Removes whitespace and empty lines from a string
@@ -23,16 +23,26 @@ function trim(content: string): string {
   return output;
 }
 
+/** Wrapper around GlslMinify to expose protected members to unit tests */
+class GlslMinifyInternal extends GlslMinify {
+  public constructor(readFile: ReadFileImpl) {
+    super(readFile);
+    this.readFile = readFile;
+  }
+
+  public readFile: ReadFileImpl;
+}
+
 describe('GlslMinify', () => {
   it('Reads files', async (done) => {
-    let glsl = new GlslMinify(null);
+    let glsl = new GlslMinifyInternal(nodeReadFile);
     let file = await glsl.readFile('tests/hello.glsl');
     expect(file.contents).toEqual('// Hello World!');
     done();
   });
 
   it('Preprocessor removes comments', async (done) => {
-    let glsl = new GlslMinify(null);
+    let glsl = new GlslMinifyInternal(nodeReadFile);
     let file = await glsl.readFile('tests/comments.glsl');
     let output = await glsl.preprocessPass1(file);
     expect(output).toEqual('void main() {}\n');
@@ -40,7 +50,7 @@ describe('GlslMinify', () => {
   });
 
   it('Preprocessor handles @include directives', async (done) => {
-    let glsl = new GlslMinify(null);
+    let glsl = new GlslMinifyInternal(nodeReadFile);
     let file = await glsl.readFile('tests/include.glsl');
     let output = await glsl.preprocessPass1(file);
 
@@ -50,7 +60,7 @@ describe('GlslMinify', () => {
   });
 
   it('Preprocessor handles @define directives', async (done) => {
-    let glsl = new GlslMinify(null);
+    let glsl = new GlslMinifyInternal(nodeReadFile);
     let file = await glsl.readFile('tests/define.glsl');
     let output = trim(glsl.preprocessPass2(file.contents));
 
@@ -61,7 +71,7 @@ describe('GlslMinify', () => {
   });
 
   it('Preprocessor handles @const directives', async (done) => {
-    let glsl = new GlslMinify(null);
+    let glsl = new GlslMinifyInternal(nodeReadFile);
     let file = await glsl.readFile('tests/const.glsl');
     let output = trim(glsl.preprocessPass2(file.contents));
 
@@ -103,7 +113,7 @@ describe('GlslMinify', () => {
   });
 
   it('Minifies a vertex shader', async (done) => {
-    let glsl = new GlslMinify(null);
+    let glsl = new GlslMinifyInternal(nodeReadFile);
     let file = await glsl.readFile('tests/minify1.glsl');
     let output = await glsl.execute(file.contents);
 
@@ -116,7 +126,7 @@ describe('GlslMinify', () => {
   });
 
   it('Minifies a fragment shader', async (done) => {
-    let glsl = new GlslMinify(null);
+    let glsl = new GlslMinifyInternal(nodeReadFile);
     let file = await glsl.readFile('tests/minify2.glsl');
     let output = await glsl.execute(file.contents);
 
@@ -133,7 +143,7 @@ describe('GlslMinify', () => {
   });
 
   it('Minifies a complex fragment shader', async (done) => {
-    let glsl = new GlslMinify(null);
+    let glsl = new GlslMinifyInternal(nodeReadFile);
     let file = await glsl.readFile('tests/minify3.glsl');
     let output = await glsl.execute(file.contents);
 

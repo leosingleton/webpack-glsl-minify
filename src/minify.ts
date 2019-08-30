@@ -253,9 +253,65 @@ export enum TokenType {
   ttNone
 }
 
+/** Implementation of NodeJS's readFile() API. */
+export type ReadFileImpl = (filename: string, directory?: string) => Promise<GlslFile>;
+
+/** Plain implementation for NodeJS */
+export function nodeReadFile(filename: string, directory?: string): Promise<GlslFile> {
+  return new Promise<GlslFile>((resolve, reject) => {
+    readFile(filename, 'utf-8', (err, data) => {
+      if (!err) {
+        // Success
+        resolve({ path: filename, contents: data });
+      } else {
+        reject(err);
+      }
+    });
+  });
+}
+
+/** Implementation of readFile for Webpack loaders */
+export function webpackReadFile(loader: LoaderContext, filename: string, directory?: string): Promise<GlslFile> {
+  return new Promise<GlslFile>((resolve, reject) => {
+    // If no directory was provided, use the root GLSL file being included
+    directory = directory || this.loader.context;
+
+    // Resolve the file path
+    this.loader.resolve(directory, filename, (err: Error, path: string) => {
+      if (err) {
+        return reject(err);
+      }
+
+      this.loader.addDependency(path);
+      readFile(path, 'utf-8', (err, data) => {
+        if (!err) {
+          // Success
+          resolve({ path: path, contents: data });
+        } else {
+          reject(err);
+        }
+      });
+    });
+  });
+}
+
+/** Stub implementation to work in browsers and non-NodeJS environments */
+export function nullReadFile(filename: string, directory?: string): Promise<GlslFile> {
+  return new Promise<GlslFile>((resolve, reject) => {
+    reject(new Error('Not Supported'));
+  })
+}
+
+/** GLSL shader minifier */
 export class GlslMinify {
-  constructor(loader: LoaderContext) {
-    this.loader = loader;
+  /**
+   * Constructor
+   * @param readFile Implementation of NodeJS's readFile() API. Three variations are included with the
+   *    webpack-glsl-minify package: nodeReadFile() for NodeJS apps, webpackReadFile() for the Webpack plugin, and
+   *    nullReadFile() for browsers and other environments that don't support reading files from the local disk.
+   */
+  constructor(readFile: ReadFileImpl) {
+    this.readFile = readFile;
   }
 
   /** List of tokens minified by the parser */
@@ -274,41 +330,6 @@ export class GlslMinify {
       uniforms: this.tokens.getUniforms(),
       consts: this.constValues
     };
-  }
-
-  public readFile(filename: string, directory?: string): Promise<GlslFile> {
-    return new Promise<GlslFile>((resolve, reject) => {
-      // If no directory was provided, use the root GLSL file being included
-      if (!directory && this.loader) {
-        directory = this.loader.context;
-      }
-
-      let readInternal = (path: string) => {
-        readFile(path, 'utf-8', (err, data) => {
-          if (!err) {
-            // Success
-            resolve({ path: path, contents: data });
-          } else {
-            reject(err);
-          }
-        });
-      };
-
-      if (this.loader) {
-        // Resolve the file path
-        this.loader.resolve(directory, filename, (err: Error, path: string) => {
-          if (err) {
-            return reject(err);
-          }
-
-          this.loader.addDependency(path);
-          readInternal(path);
-        });
-      } else {
-        // Special case for unit tests without a Webpack LoaderContext. Just read the file.
-        readInternal(filename);
-      }
-    });
   }
 
   /**
@@ -616,7 +637,7 @@ export class GlslMinify {
     }
   }
 
-  private loader: LoaderContext;
+  protected readFile: ReadFileImpl;
 }
 
 export async function webpackLoader(content: string): Promise<void> {
@@ -624,7 +645,7 @@ export async function webpackLoader(content: string): Promise<void> {
   let callback = loader.async();
 
   try {
-    let glsl = new GlslMinify(loader);
+    let glsl = new GlslMinify((filename, directory) => webpackReadFile(loader, filename, directory));
     let program = await glsl.execute(content);
     let code = 'module.exports = ' + GlslMinify.stringify(program);
 
