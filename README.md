@@ -104,6 +104,14 @@ module.exports = {
 The map of uniforms is included to make it easy for the JavaScript code compiling and executing the WebGL shader to
 set the uniform values, even after minification.
 
+TypeScript type definitions are included in the webpack-glsl-minify package for the output object. Simply cast to a
+`GlslShader` object when including GLSL code:
+```javascript
+import { GlslShader, GlslVariable, GlslVariableMap } from 'webpack-glsl-minify';
+
+let shader = require('./myshader.glsl') as GlslShader;
+```
+
 ## Compiling From Source
 The source code is written in TypeScript. The build script supports two commands:
 
