@@ -265,10 +265,26 @@ export function nullDirname(p: string): string {
   return undefined;
 }
 
+/** Options for the GLSL shader minifier */
+export interface GlslMinifyOptions {
+  /** Preserves comments. Default = false. */
+  preserveComments?: boolean;
+
+  /** Disables name mangling of #defines. Default = false. */
+  preserveDefines?: boolean;
+
+  /** Disables name mangling of uniforms. Default = false. */
+  preserveUniforms?: boolean;
+
+  /** Disables name mangling of variables. Default = false. */
+  preserveVariables?: boolean;
+}
+
 /** GLSL shader minifier */
 export class GlslMinify {
   /**
    * Constructor
+   * @param options Minifier options. See GlslMinifyOptions for details.
    * @param readFile Implementation of NodeJS's readFile() API. Three variations are included with the
    *    webpack-glsl-minify package: nodeReadFile() for NodeJS apps, webpackReadFile() for the Webpack plugin, and
    *    nullReadFile() for browsers and other environments that don't support reading files from the local disk.
@@ -276,7 +292,8 @@ export class GlslMinify {
    *    package: nodeDirname() for NodeJS and Webpack and nullDirname() for browsers and other environments that don't
    *    support reading files from the local disk.
    */
-  constructor(readFile = nullReadFile, dirname = nullDirname) {
+  constructor(options?: GlslMinifyOptions, readFile = nullReadFile, dirname = nullDirname) {
+    this.options = options || {};
     this.readFile = readFile;
     this.dirname = dirname;
   }
@@ -308,13 +325,15 @@ export class GlslMinify {
     // Remove carriage returns. Use newlines only.
     output = output.replace('\r', '');
 
-    // Remove C style comments
-    let cStyleRegex = /\/\*[\s\S]*?\*\//g;
-    output = output.replace(cStyleRegex, '');
+    if (!this.options.preserveComments) {
+      // Remove C style comments
+      let cStyleRegex = /\/\*[\s\S]*?\*\//g;
+      output = output.replace(cStyleRegex, '');
 
-    // Remove C++ style comments
-    let cppStyleRegex = /\/\/[^\n]*/g;
-    output = output.replace(cppStyleRegex, '\n');
+      // Remove C++ style comments
+      let cppStyleRegex = /\/\/[^\n]*/g;
+      output = output.replace(cppStyleRegex, '\n');
+    }
 
     // Process @include directive
     let includeRegex = /@include\s+(.*)/;
@@ -507,6 +526,9 @@ export class GlslMinify {
           let defineRegex = /#define\s(\w+)\s(.*)/;
           let subMatch = defineRegex.exec(token);
           if (subMatch) {
+            if (this.options.preserveDefines) {
+              this.tokens.reserveKeywords([subMatch[1]]);
+            }
             let minToken = this.tokens.minifyToken(subMatch[1]);
             output += '#define ' + minToken + ' ' + subMatch[2] + '\n';
             break;
@@ -547,9 +569,15 @@ export class GlslMinify {
           let minToken: string;
           if (prevPrevType === TokenType.ttUniform) {
             // This is a special case of a uniform declaration
+            if (this.options.preserveUniforms) {
+              this.tokens.reserveKeywords([token]);
+            }
             minToken = this.tokens.minifyToken(token, prevToken);
           } else {
             // Normal token
+            if (this.options.preserveVariables) {
+              this.tokens.reserveKeywords([token]);
+            }
             minToken = this.tokens.minifyToken(token);
           }
 
@@ -604,6 +632,7 @@ export class GlslMinify {
     }
   }
 
+  protected options: GlslMinifyOptions;
   protected readFile: ReadFileImpl;
   protected dirname: DirnameImpl;
 }
