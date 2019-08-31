@@ -140,7 +140,9 @@ export class TokenMap {
   public reserveKeywords(keywords: string[]): void {
     for (let n = 0; n < keywords.length; n++) {
       let keyword = keywords[n];
-      this.tokens[keyword] = { variableType: undefined, variableName: keyword };
+      if (!this.tokens[keyword]) {
+        this.tokens[keyword] = { variableType: undefined, variableName: keyword };
+      }
     }
   }
 
