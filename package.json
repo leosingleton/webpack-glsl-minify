@@ -21,7 +21,7 @@
   },
   "scripts": {
     "build": "npx tsc",
-    "test": "./node_modules/jasmine-xml-reporter/bin/jasmine.js ./build/minify.spec.js --junitreport --output=build/"
+    "test": "./node_modules/jasmine-xml-reporter/bin/jasmine.js ./build/__tests__/minify.test.js --junitreport --output=build/"
   },
   "files": [
     "build/*.d.ts",
