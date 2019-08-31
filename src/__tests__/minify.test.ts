@@ -1,8 +1,8 @@
-// src/index.spec.ts
+// src/__tests__/minify.test.ts
 // Copyright 2018-2019 Leo C. Singleton IV <leo@leosingleton.com>
 
-import { GlslMinify, GlslMinifyOptions, GlslFile, TokenMap, TokenType, ReadFileImpl, DirnameImpl } from './minify';
-import { nodeReadFile, nodeDirname } from './node';
+import { GlslMinify, GlslMinifyOptions, GlslFile, TokenMap, TokenType, ReadFileImpl, DirnameImpl } from '../minify';
+import { nodeReadFile, nodeDirname } from '../node';
 
 /**
  * Removes whitespace and empty lines from a string

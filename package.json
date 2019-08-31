@@ -1,6 +1,6 @@
 {
   "name": "webpack-glsl-minify",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "author": "Leo C. Singleton IV <leo@leosingleton.com>",
   "description": "GLSL Loader, Preprocessor, and Minifier for Webpack",
   "homepage": "https://github.com/leosingleton/webpack-glsl-minify",
@@ -17,14 +17,15 @@
     "jasmine": "^3.4.0",
     "jasmine-xml-reporter": "^1.2.1",
     "loader-utils": "^1.2.3",
-    "typescript": "^3.5.3"
+    "typescript": "^3.6.2"
   },
   "scripts": {
     "build": "npx tsc",
-    "test": "./node_modules/jasmine-xml-reporter/bin/jasmine.js ./build/minify.spec.js --junitreport --output=build/"
+    "test": "./node_modules/jasmine-xml-reporter/bin/jasmine.js ./build/__tests__/minify.test.js --junitreport --output=build/"
   },
   "files": [
-    "build/index.js"
+    "build/*.d.ts",
+    "build/*.js"
   ],
   "main": "build/index.js",
   "types": "build/index.d.ts"
