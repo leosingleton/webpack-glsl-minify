@@ -1,7 +1,8 @@
 // src/index.spec.ts
-// Copyright 2018 Leo C. Singleton IV <leo@leosingleton.com>
+// Copyright 2018-2019 Leo C. Singleton IV <leo@leosingleton.com>
 
-import { GlslMinify, TokenMap, TokenType } from './index';
+import { GlslMinify, GlslMinifyOptions, GlslFile, TokenMap, TokenType, ReadFileImpl, DirnameImpl } from './minify';
+import { nodeReadFile, nodeDirname } from './node';
 
 /**
  * Removes whitespace and empty lines from a string
@@ -23,16 +24,38 @@ function trim(content: string): string {
   return output;
 }
 
+/** Wrapper around GlslMinify to expose protected members to unit tests */
+class GlslMinifyInternal extends GlslMinify {
+  public constructor(options: GlslMinifyOptions, readFile: ReadFileImpl, dirname: DirnameImpl) {
+    super(options, readFile, dirname);
+    this.readFile = readFile;
+  }
+
+  public preprocessPass1(content: GlslFile): Promise<string> {
+    return super.preprocessPass1(content);
+  }
+
+  public preprocessPass2(content: string): string {
+    return super.preprocessPass2(content);
+  }
+
+  public static getTokenType(token: string): TokenType {
+    return super.getTokenType(token);
+  }
+
+  public readFile: ReadFileImpl;
+}
+
 describe('GlslMinify', () => {
   it('Reads files', async (done) => {
-    let glsl = new GlslMinify(null);
+    let glsl = new GlslMinifyInternal({}, nodeReadFile, nodeDirname);
     let file = await glsl.readFile('tests/hello.glsl');
     expect(file.contents).toEqual('// Hello World!');
     done();
   });
 
   it('Preprocessor removes comments', async (done) => {
-    let glsl = new GlslMinify(null);
+    let glsl = new GlslMinifyInternal({}, nodeReadFile, nodeDirname);
     let file = await glsl.readFile('tests/comments.glsl');
     let output = await glsl.preprocessPass1(file);
     expect(output).toEqual('void main() {}\n');
@@ -40,7 +63,7 @@ describe('GlslMinify', () => {
   });
 
   it('Preprocessor handles @include directives', async (done) => {
-    let glsl = new GlslMinify(null);
+    let glsl = new GlslMinifyInternal({}, nodeReadFile, nodeDirname);
     let file = await glsl.readFile('tests/include.glsl');
     let output = await glsl.preprocessPass1(file);
 
@@ -50,7 +73,7 @@ describe('GlslMinify', () => {
   });
 
   it('Preprocessor handles @define directives', async (done) => {
-    let glsl = new GlslMinify(null);
+    let glsl = new GlslMinifyInternal({}, nodeReadFile, nodeDirname);
     let file = await glsl.readFile('tests/define.glsl');
     let output = trim(glsl.preprocessPass2(file.contents));
 
@@ -61,7 +84,7 @@ describe('GlslMinify', () => {
   });
 
   it('Preprocessor handles @const directives', async (done) => {
-    let glsl = new GlslMinify(null);
+    let glsl = new GlslMinifyInternal({}, nodeReadFile, nodeDirname);
     let file = await glsl.readFile('tests/const.glsl');
     let output = trim(glsl.preprocessPass2(file.contents));
 
@@ -92,18 +115,18 @@ describe('GlslMinify', () => {
   });
 
   it('Determines token type', () => {
-    expect(GlslMinify.getTokenType('attribute')).toEqual(TokenType.ttAttribute);
-    expect(GlslMinify.getTokenType('.')).toEqual(TokenType.ttDot);
-    expect(GlslMinify.getTokenType('12345')).toEqual(TokenType.ttNumeric);
-    expect(GlslMinify.getTokenType('+=')).toEqual(TokenType.ttOperator);
-    expect(GlslMinify.getTokenType('#version 150')).toEqual(TokenType.ttPreprocessor);
-    expect(GlslMinify.getTokenType('gl_FragColor')).toEqual(TokenType.ttToken);
-    expect(GlslMinify.getTokenType('uniform')).toEqual(TokenType.ttUniform);
-    expect(GlslMinify.getTokenType('varying')).toEqual(TokenType.ttVarying);
+    expect(GlslMinifyInternal.getTokenType('attribute')).toEqual(TokenType.ttAttribute);
+    expect(GlslMinifyInternal.getTokenType('.')).toEqual(TokenType.ttDot);
+    expect(GlslMinifyInternal.getTokenType('12345')).toEqual(TokenType.ttNumeric);
+    expect(GlslMinifyInternal.getTokenType('+=')).toEqual(TokenType.ttOperator);
+    expect(GlslMinifyInternal.getTokenType('#version 150')).toEqual(TokenType.ttPreprocessor);
+    expect(GlslMinifyInternal.getTokenType('gl_FragColor')).toEqual(TokenType.ttToken);
+    expect(GlslMinifyInternal.getTokenType('uniform')).toEqual(TokenType.ttUniform);
+    expect(GlslMinifyInternal.getTokenType('varying')).toEqual(TokenType.ttVarying);
   });
 
   it('Minifies a vertex shader', async (done) => {
-    let glsl = new GlslMinify(null);
+    let glsl = new GlslMinifyInternal({}, nodeReadFile, nodeDirname);
     let file = await glsl.readFile('tests/minify1.glsl');
     let output = await glsl.execute(file.contents);
 
@@ -116,7 +139,7 @@ describe('GlslMinify', () => {
   });
 
   it('Minifies a fragment shader', async (done) => {
-    let glsl = new GlslMinify(null);
+    let glsl = new GlslMinifyInternal({}, nodeReadFile, nodeDirname);
     let file = await glsl.readFile('tests/minify2.glsl');
     let output = await glsl.execute(file.contents);
 
@@ -133,7 +156,7 @@ describe('GlslMinify', () => {
   });
 
   it('Minifies a complex fragment shader', async (done) => {
-    let glsl = new GlslMinify(null);
+    let glsl = new GlslMinifyInternal({}, nodeReadFile, nodeDirname);
     let file = await glsl.readFile('tests/minify3.glsl');
     let output = await glsl.execute(file.contents);
 
