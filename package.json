@@ -24,7 +24,8 @@
     "test": "./node_modules/jasmine-xml-reporter/bin/jasmine.js ./build/minify.spec.js --junitreport --output=build/"
   },
   "files": [
-    "build/index.js"
+    "build/*.d.ts",
+    "build/*.js"
   ],
   "main": "build/index.js",
   "types": "build/index.d.ts"
