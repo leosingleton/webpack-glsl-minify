@@ -17,7 +17,7 @@
     "jasmine": "^3.4.0",
     "jasmine-xml-reporter": "^1.2.1",
     "loader-utils": "^1.2.3",
-    "typescript": "^3.5.3"
+    "typescript": "^3.6.2"
   },
   "scripts": {
     "build": "npx tsc",
