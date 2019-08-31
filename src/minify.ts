@@ -267,9 +267,6 @@ export function nullDirname(p: string): string {
 
 /** Options for the GLSL shader minifier */
 export interface GlslMinifyOptions {
-  /** Preserves comments. Default = false. */
-  preserveComments?: boolean;
-
   /** Disables name mangling of #defines. Default = false. */
   preserveDefines?: boolean;
 
@@ -325,15 +322,13 @@ export class GlslMinify {
     // Remove carriage returns. Use newlines only.
     output = output.replace('\r', '');
 
-    if (!this.options.preserveComments) {
-      // Remove C style comments
-      let cStyleRegex = /\/\*[\s\S]*?\*\//g;
-      output = output.replace(cStyleRegex, '');
+    // Remove C style comments
+    let cStyleRegex = /\/\*[\s\S]*?\*\//g;
+    output = output.replace(cStyleRegex, '');
 
-      // Remove C++ style comments
-      let cppStyleRegex = /\/\/[^\n]*/g;
-      output = output.replace(cppStyleRegex, '\n');
-    }
+    // Remove C++ style comments
+    let cppStyleRegex = /\/\/[^\n]*/g;
+    output = output.replace(cppStyleRegex, '\n');
 
     // Process @include directive
     let includeRegex = /@include\s+(.*)/;
