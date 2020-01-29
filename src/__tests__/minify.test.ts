@@ -1,5 +1,5 @@
 // src/__tests__/minify.test.ts
-// Copyright 2018-2019 Leo C. Singleton IV <leo@leosingleton.com>
+// Copyright 2018-2020 Leo C. Singleton IV <leo@leosingleton.com>
 
 import { GlslMinify, GlslMinifyOptions, GlslFile, TokenMap, TokenType, ReadFileImpl, DirnameImpl } from '../minify';
 import { nodeReadFile, nodeDirname } from '../node';
@@ -49,14 +49,14 @@ class GlslMinifyInternal extends GlslMinify {
 describe('GlslMinify', () => {
   it('Reads files', async (done) => {
     let glsl = new GlslMinifyInternal({}, nodeReadFile, nodeDirname);
-    let file = await glsl.readFile('tests/hello.glsl');
+    let file = await glsl.readFile('tests/glsl/hello.glsl');
     expect(file.contents).toEqual('// Hello World!');
     done();
   });
 
   it('Preprocessor removes comments', async (done) => {
     let glsl = new GlslMinifyInternal({}, nodeReadFile, nodeDirname);
-    let file = await glsl.readFile('tests/comments.glsl');
+    let file = await glsl.readFile('tests/glsl/comments.glsl');
     let output = await glsl.preprocessPass1(file);
     expect(output).toEqual('void main() {}\n');
     done();
@@ -64,7 +64,7 @@ describe('GlslMinify', () => {
 
   it('Preprocessor handles @include directives', async (done) => {
     let glsl = new GlslMinifyInternal({}, nodeReadFile, nodeDirname);
-    let file = await glsl.readFile('tests/include.glsl');
+    let file = await glsl.readFile('tests/glsl/include.glsl');
     let output = await glsl.preprocessPass1(file);
 
     // Expect an additional newline for the // comment after the @include
@@ -74,7 +74,7 @@ describe('GlslMinify', () => {
 
   it('Preprocessor handles @define directives', async (done) => {
     let glsl = new GlslMinifyInternal({}, nodeReadFile, nodeDirname);
-    let file = await glsl.readFile('tests/define.glsl');
+    let file = await glsl.readFile('tests/glsl/define.glsl');
     let output = trim(glsl.preprocessPass2(file.contents));
 
     let expected = 'void main() { gl_FragColor = vec4(1.0, 1.0, 1.0, 1.0); }';
@@ -85,7 +85,7 @@ describe('GlslMinify', () => {
 
   it('Preprocessor handles @const directives', async (done) => {
     let glsl = new GlslMinifyInternal({}, nodeReadFile, nodeDirname);
-    let file = await glsl.readFile('tests/const.glsl');
+    let file = await glsl.readFile('tests/glsl/const.glsl');
     let output = trim(glsl.preprocessPass2(file.contents));
 
     let expected = 'const float color=$0$;\nvoid main() { gl_FragColor = vec4(vec3(color), 1.0); }';
@@ -127,11 +127,11 @@ describe('GlslMinify', () => {
 
   it('Minifies a vertex shader', async (done) => {
     let glsl = new GlslMinifyInternal({}, nodeReadFile, nodeDirname);
-    let file = await glsl.readFile('tests/minify1.glsl');
+    let file = await glsl.readFile('tests/glsl/minify1.glsl');
     let output = await glsl.execute(file.contents);
 
     // Read the expected output
-    let expected = await glsl.readFile('tests/minify1.min.glsl');
+    let expected = await glsl.readFile('tests/glsl/minify1.min.glsl');
     expect(output.sourceCode).toEqual(trim(expected.contents));
     expect(output.uniforms['u_flipY'].variableName).toEqual('A');
     expect(output.uniforms['u_flipY'].variableType).toEqual('float');
@@ -140,11 +140,11 @@ describe('GlslMinify', () => {
 
   it('Minifies a fragment shader', async (done) => {
     let glsl = new GlslMinifyInternal({}, nodeReadFile, nodeDirname);
-    let file = await glsl.readFile('tests/minify2.glsl');
+    let file = await glsl.readFile('tests/glsl/minify2.glsl');
     let output = await glsl.execute(file.contents);
 
     // Read the expected output
-    let expected = await glsl.readFile('tests/minify2.min.glsl');
+    let expected = await glsl.readFile('tests/glsl/minify2.min.glsl');
     expect(output.sourceCode).toEqual(trim(expected.contents));
     expect(output.uniforms['u_y'].variableName).toEqual('A');
     expect(output.uniforms['u_y'].variableType).toEqual('sampler2D');
@@ -157,11 +157,11 @@ describe('GlslMinify', () => {
 
   it('Minifies a complex fragment shader', async (done) => {
     let glsl = new GlslMinifyInternal({}, nodeReadFile, nodeDirname);
-    let file = await glsl.readFile('tests/minify3.glsl');
+    let file = await glsl.readFile('tests/glsl/minify3.glsl');
     let output = await glsl.execute(file.contents);
 
     // Read the expected output
-    let expected = await glsl.readFile('tests/minify3.min.glsl');
+    let expected = await glsl.readFile('tests/glsl/minify3.min.glsl');
     expect(output.sourceCode).toEqual(trim(expected.contents));
     expect(output.uniforms['iResolution'].variableName).toEqual('A');
     expect(output.uniforms['iResolution'].variableType).toEqual('vec3');

@@ -5,7 +5,7 @@ uniform sampler2D iChannel0;
 
 #define RADIUS 20
 
-@include "tests/minify3-include.glsl"
+@include "tests/glsl/minify3-include.glsl"
 
 // Input is in YUV format
 
