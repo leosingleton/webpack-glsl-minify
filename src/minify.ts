@@ -1,5 +1,5 @@
 // src/minify.ts
-// Copyright 2018-2019 Leo C. Singleton IV <leo@leosingleton.com>
+// Copyright 2018-2020 Leo C. Singleton IV <leo@leosingleton.com>
 
 export interface GlslVariable {
   /** Variable type, e.g. 'vec3' or 'float' */
@@ -598,6 +598,11 @@ export class GlslMinify {
     }
 
     return output;
+  }
+
+  public async executeAndStringify(content: string): Promise<string> {
+    let program = await this.execute(content);
+    return 'module.exports = ' + GlslMinify.stringify(program);
   }
 
   /** Similar to JSON.stringify(), except without double-quotes around property names */

@@ -2,14 +2,19 @@
 // Copyright 2018-2020 Leo C. Singleton IV <leo@leosingleton.com>
 // Entry point when running "npx webpack-glsl-minify ..." on the command line
 
-import yargs = require('yargs');
+import { GlslMinify } from './minify';
+import { nodeDirname, nodeReadFile } from './node';
+import { writeFileSync } from 'fs';
+import * as path from 'path';
+import * as yargs from 'yargs';
 
 interface Arguments {
   files: string[];
+  ext: string;
   outDir?: string;
-  preserveDefines: boolean;
-  preserveUniforms: boolean;
-  preserveVariables: boolean;
+  preserveDefines?: boolean;
+  preserveUniforms?: boolean;
+  preserveVariables?: boolean;
 }
 
 // Validate and parse command line arguments. yargs exits and displays help on invalid arguments.
@@ -19,7 +24,7 @@ var argv = yargs
   .options({
     'ext': {
       'alias': 'e',
-      'default': '.glsl.js',
+      'default': '.js',
       'describe': 'Extension for output files',
       'type': 'string'
     },
@@ -44,9 +49,32 @@ var argv = yargs
   .help()
   .argv as any as Arguments;
 
-console.log(argv);
+// Create minifier
+let glsl = new GlslMinify({
+  preserveDefines: argv.preserveDefines,
+  preserveUniforms: argv.preserveUniforms,
+  preserveVariables: argv.preserveVariables
+}, nodeReadFile, nodeDirname);
 
 // Process input files
 argv.files.forEach(file => {
-  console.log(file);
+  processFile(file).then(() => {}, err => {
+    console.log(err);
+    process.exit(-1);
+  });
 });
+
+async function processFile(file: string): Promise<void> {
+  // Determine the output file path
+  let dirname = argv.outDir ?? path.dirname(file);
+  let filename = path.basename(file);
+  let outfile = path.resolve(dirname, filename + argv.ext);
+  console.log(`${file} => ${outfile}`);
+
+  // Read the input file and minify it
+  let rawGlsl = await nodeReadFile(file);
+  let minifiedGlsl = await glsl.executeAndStringify(rawGlsl.contents);
+
+  // Write output file
+  writeFileSync(outfile, minifiedGlsl);
+}

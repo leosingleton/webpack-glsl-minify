@@ -43,8 +43,7 @@ export async function webpackLoader(content: string): Promise<void> {
   try {
     let glsl = new GlslMinify(options, (filename, directory) => webpackReadFile(loader, filename, directory),
       nodeDirname);
-    let program = await glsl.execute(content);
-    let code = 'module.exports = ' + GlslMinify.stringify(program);
+    let code = await glsl.executeAndStringify(content);
 
     callback(null, code);
   } catch (err) {
