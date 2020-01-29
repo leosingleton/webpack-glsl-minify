@@ -4,13 +4,22 @@
 
 import yargs = require('yargs');
 
+interface Arguments {
+  files: string[];
+  outDir?: string;
+  preserveDefines: boolean;
+  preserveUniforms: boolean;
+  preserveVariables: boolean;
+}
+
+// Validate and parse command line arguments. yargs exits and displays help on invalid arguments.
 var argv = yargs
-  .command('$0 <files..>', 'Minifies one or more GLSL files, provided as glob patterns')
+  .command('$0 <files..>', 'Minifies one or more GLSL files')
   .demandCommand()
   .options({
     'ext': {
       'alias': 'e',
-      'default': 'js',
+      'default': '.glsl.js',
       'describe': 'Extension for output files',
       'type': 'string'
     },
@@ -33,7 +42,11 @@ var argv = yargs
     }
   })
   .help()
-  .argv;
+  .argv as any as Arguments;
 
-// TODO: implement
 console.log(argv);
+
+// Process input files
+argv.files.forEach(file => {
+  console.log(file);
+});
