@@ -14,6 +14,11 @@ steps:
   displayName: 'npm install'
 
 - script: |
+    npm run lint
+  displayName: 'Lint'
+  continueOnError: true
+
+- script: |
     npm run build
   displayName: 'Compile'
   continueOnError: true
