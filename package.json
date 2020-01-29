@@ -24,9 +24,14 @@
     "test": "./node_modules/jasmine-xml-reporter/bin/jasmine.js ./build/__tests__/minify.test.js --junitreport --output=build/"
   },
   "files": [
+    "bin/*",
     "build/*.d.ts",
     "build/*.js"
   ],
+  "bin": {
+    "webpack-glsl-minify": "bin/webpack-glsl-minify",
+    "wgm": "bin/wgm"
+  },
   "main": "build/index.js",
   "types": "build/index.d.ts"
 }
