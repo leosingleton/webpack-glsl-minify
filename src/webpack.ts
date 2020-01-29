@@ -1,5 +1,5 @@
 // src/webpack.ts
-// Copyright 2018-2019 Leo C. Singleton IV <leo@leosingleton.com>
+// Copyright 2018-2020 Leo C. Singleton IV <leo@leosingleton.com>
 
 import { GlslMinify, GlslMinifyOptions, GlslFile } from './minify';
 
@@ -50,4 +50,4 @@ export async function webpackLoader(content: string): Promise<void> {
   } catch (err) {
     callback(err);
   }
-};
+}

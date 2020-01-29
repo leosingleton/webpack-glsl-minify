@@ -508,83 +508,87 @@ export class GlslMinify {
     let prevToken: string;
     let prevType = TokenType.ttNone;
     let prevPrevType = TokenType.ttNone;
-    while (match = tokenRegex.exec(content)) {
+    while ((match = tokenRegex.exec(content))) {
       let token = match[0];
       let type = GlslMinify.getTokenType(token);
 
       switch (type) {
-        case TokenType.ttPreprocessor:
-          // Preprocessor directives must always begin on a new line
-          if (output !== '' && !output.endsWith('\n')) {
-            output += '\n';
-          }
-
-          // Special case for #define: we want to minify the value being defined
-          let defineRegex = /#define\s(\w+)\s(.*)/;
-          let subMatch = defineRegex.exec(token);
-          if (subMatch) {
-            if (this.options.preserveDefines) {
-              this.tokens.reserveKeywords([subMatch[1]]);
+        case TokenType.ttPreprocessor: {
+            // Preprocessor directives must always begin on a new line
+            if (output !== '' && !output.endsWith('\n')) {
+              output += '\n';
             }
-            let minToken = this.tokens.minifyToken(subMatch[1]);
-            output += '#define ' + minToken + ' ' + subMatch[2] + '\n';
+
+            // Special case for #define: we want to minify the value being defined
+            let defineRegex = /#define\s(\w+)\s(.*)/;
+            let subMatch = defineRegex.exec(token);
+            if (subMatch) {
+              if (this.options.preserveDefines) {
+                this.tokens.reserveKeywords([subMatch[1]]);
+              }
+              let minToken = this.tokens.minifyToken(subMatch[1]);
+              output += '#define ' + minToken + ' ' + subMatch[2] + '\n';
+              break;
+            }
+
+            // Preprocessor directives are special in that they require the newline
+            output += token + '\n';
             break;
           }
 
-          // Preprocessor directives are special in that they require the newline
-          output += token + '\n';
-          break;
-
-        case TokenType.ttNumeric:
-          // Special case for numerics: we can omit a zero following a dot (e.g. "1." is the same as "1.0") in GLSL
-          if (token === '0' && prevType === TokenType.ttDot) {
-            break;
+        case TokenType.ttNumeric: {
+            // Special case for numerics: we can omit a zero following a dot (e.g. "1." is the same as "1.0") in GLSL
+            if (token === '0' && prevType === TokenType.ttDot) {
+              break;
+            }
           }
-          // Fall through to below
+          // eslint-disable-next-line no-fallthrough
 
         case TokenType.ttOperator:
-        case TokenType.ttDot:
-          output += token;
-          break;
-
-        case TokenType.ttToken:
-        case TokenType.ttAttribute:
-        case TokenType.ttUniform:
-        case TokenType.ttVarying:
-          // Special case: a token following a dot is a swizzle mask. Leave it as-is.
-          if (prevType === TokenType.ttDot) {
+        case TokenType.ttDot: {
             output += token;
             break;
           }
 
-          // For attribute and varying declarations, turn off minification.
-          if (prevPrevType === TokenType.ttAttribute || prevPrevType === TokenType.ttVarying) {
-            this.tokens.reserveKeywords([token]);
-          }
+        case TokenType.ttToken:
+        case TokenType.ttAttribute:
+        case TokenType.ttUniform:
+        case TokenType.ttVarying: {
+            // Special case: a token following a dot is a swizzle mask. Leave it as-is.
+            if (prevType === TokenType.ttDot) {
+              output += token;
+              break;
+            }
 
-          // Try to minify the token
-          let minToken: string;
-          if (prevPrevType === TokenType.ttUniform) {
-            // This is a special case of a uniform declaration
-            if (this.options.preserveUniforms) {
+            // For attribute and varying declarations, turn off minification.
+            if (prevPrevType === TokenType.ttAttribute || prevPrevType === TokenType.ttVarying) {
               this.tokens.reserveKeywords([token]);
             }
-            minToken = this.tokens.minifyToken(token, prevToken);
-          } else {
-            // Normal token
-            if (this.options.preserveVariables) {
-              this.tokens.reserveKeywords([token]);
-            }
-            minToken = this.tokens.minifyToken(token);
-          }
 
-          // When outputting, if the previous token was not an operator or newline, leave a space.
-          if (prevType !== TokenType.ttOperator && prevType !== TokenType.ttPreprocessor &&
-              prevType !== TokenType.ttNone) {
-            output += ' ';
+            // Try to minify the token
+            let minToken: string;
+            if (prevPrevType === TokenType.ttUniform) {
+              // This is a special case of a uniform declaration
+              if (this.options.preserveUniforms) {
+                this.tokens.reserveKeywords([token]);
+              }
+              minToken = this.tokens.minifyToken(token, prevToken);
+            } else {
+              // Normal token
+              if (this.options.preserveVariables) {
+                this.tokens.reserveKeywords([token]);
+              }
+              minToken = this.tokens.minifyToken(token);
+            }
+
+            // When outputting, if the previous token was not an operator or newline, leave a space.
+            if (prevType !== TokenType.ttOperator && prevType !== TokenType.ttPreprocessor &&
+                prevType !== TokenType.ttNone) {
+              output += ' ';
+            }
+            output += minToken;
+            break;
           }
-          output += minToken;
-          break;
       }
 
       // Advance to the next token
