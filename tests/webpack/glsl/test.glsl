@@ -2,7 +2,7 @@
 
 precision mediump float;
 
-@include "./included.glsl"
+@include "../glsl-include/YCbCr.glsl"
 
 // Add the texture coordinates from the vertex shader
 varying vec2 v_texCoord;
