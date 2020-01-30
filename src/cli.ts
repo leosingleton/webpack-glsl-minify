@@ -5,11 +5,12 @@
 import { GlslMinify, GlslOutputFormat } from './minify';
 import { nodeDirname, nodeReadFile } from './node';
 import { writeFileSync } from 'fs';
+import glob = require('glob');
 import * as path from 'path';
 import * as yargs from 'yargs';
 
 interface Arguments {
-  files: string[];
+  files: string | string[];
   ext: string;
   outDir?: string;
   output?: GlslOutputFormat;
@@ -23,7 +24,7 @@ const outputFormats: GlslOutputFormat[] = [ 'object', 'source', 'sourceOnly' ];
 
 // Validate and parse command line arguments. yargs exits and displays help on invalid arguments.
 var argv = yargs
-  .command('$0 <files..>', 'Minifies one or more GLSL files')
+  .command('$0 <files..> [options]', 'Minifies one or more GLSL files. Input files may be specified in glob syntax.')
   .demandCommand()
   .options({
     'ext': {
@@ -72,12 +73,27 @@ let glsl = new GlslMinify({
 }, nodeReadFile, nodeDirname);
 
 // Process input files
-argv.files.forEach(file => {
-  processFile(file).then(() => {}, err => {
-    console.log(err);
-    process.exit(-1);
+if (Array.isArray(argv.files)) {
+  argv.files.forEach(pattern => processGlob(pattern));
+} else {
+  processGlob(argv.files);
+}
+
+function processGlob(pattern: string): void {
+  glob(pattern, (err, matches) => {
+    if (err) {
+      console.log(err);
+      process.exit(-1);
+    }
+
+    matches.forEach(file => {
+      processFile(file).then(() => {}, err => {
+        console.log(err);
+        process.exit(-1);
+      });    
+    });
   });
-});
+}
 
 async function processFile(file: string): Promise<void> {
   // Determine the output file path
