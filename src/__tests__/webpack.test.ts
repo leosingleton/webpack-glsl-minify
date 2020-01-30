@@ -36,8 +36,16 @@ async function runWebpack(configFile: string): Promise<string> {
 
 describe('Webpack Loader', () => {
   it('Executes with default options', async () => {
-    let output = await runWebpack('webpack.config.js');
+    let output = await runWebpack('webpack.test1.js');
     expect(output).toContain('gl_FragColor=vec4');
-    expect(output.indexOf('u_cb;')).toEqual(-1); // Uniforms are minified by default
+    expect(output.indexOf('u_cb;')).toEqual(-1);            // Uniforms are minified by default
+    expect(output.indexOf('mat3 transform')).toEqual(-1);   // Variables are minified by default
+  });
+
+  it('Executes with mangling disabled', async () => {
+    let output = await runWebpack('webpack.test2.js');
+    expect(output).toContain('gl_FragColor=vec4');
+    expect(output).toContain('u_cb;');
+    expect(output).toContain('mat3 transform');
   });
 });
