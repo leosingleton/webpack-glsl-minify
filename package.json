@@ -31,7 +31,7 @@
   "scripts": {
     "build": "npx tsc",
     "lint": "npx eslint \"src/**/*.ts\"",
-    "test": "./node_modules/jasmine-xml-reporter/bin/jasmine.js ./build/__tests__/minify.test.js --junitreport --output=build/"
+    "test": "./node_modules/jasmine-xml-reporter/bin/jasmine.js ./build/__tests__/*.test.js --junitreport --output=build/"
   },
   "files": [
     "bin/*",
