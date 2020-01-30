@@ -9,7 +9,7 @@ module.exports = {
         use: {
           loader: '../../',
           options: {
-            outputFormat: 'source'
+            output: 'source'
           }
         }
       }
