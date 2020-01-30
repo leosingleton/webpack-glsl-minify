@@ -24,7 +24,9 @@
     "jasmine": "^3.5.0",
     "jasmine-xml-reporter": "^1.2.1",
     "loader-utils": "^1.2.3",
-    "typescript": "^3.7.5"
+    "typescript": "^3.7.5",
+    "webpack": "^4.41.5",
+    "webpack-cli": "^3.3.10"
   },
   "scripts": {
     "build": "npx tsc",
