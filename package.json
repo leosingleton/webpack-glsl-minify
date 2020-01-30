@@ -1,6 +1,6 @@
 {
   "name": "webpack-glsl-minify",
-  "version": "1.1.2",
+  "version": "1.2.0",
   "author": "Leo C. Singleton IV <leo@leosingleton.com>",
   "description": "GLSL Loader, Preprocessor, and Minifier for Webpack",
   "homepage": "https://github.com/leosingleton/webpack-glsl-minify",
