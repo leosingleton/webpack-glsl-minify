@@ -55,4 +55,13 @@ describe('Webpack Loader', () => {
     expect(output).toContain('u_cb;');                      // Uniform mangling is disables
     expect(output.indexOf('mat3 transform')).toEqual(-1);   // Variables are still minified
   });
+
+  it('Executes with specific nomangle keywords', async () => {
+    let output = await runWebpack('webpack.test4.js');
+    expect(output).toContain('gl_FragColor=vec4');
+    expect(output.indexOf('u_cb;')).toEqual(-1);            // Uniforms are minified by default
+    expect(output).toContain('u_cr;');                      // u_cr is in the nomangle list
+    expect(output.indexOf('mat3 transform')).toEqual(-1);   // Variables are still minified
+    expect(output).toContain('vec3 offset');                // offset is in the nomangle list
+  });
 });

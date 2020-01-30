@@ -283,6 +283,9 @@ export interface GlslMinifyOptions {
 
   /** Disables name mangling of variables. Default = false. */
   preserveVariables?: boolean;
+
+  /** Additional variable names or keywords to explicitly disable name mangling */
+  nomangle?: string[];
 }
 
 /**
@@ -406,6 +409,11 @@ export class GlslMinify {
    */
   protected preprocessPass2(content: string): string {
     let output = content;
+
+    // Disable name mangling for keywords provided via options
+    if (this.options.nomangle) {
+      this.tokens.reserveKeywords(this.options.nomangle);
+    }
 
     // Process @nomangle directives
     let nomangleRegex = /@nomangle\s+(.*)/;
