@@ -79,7 +79,8 @@ The following minification optimizations are performed:
   `@nomangle` directive.
 
 ### Output
-As output, the following JavaScript code is produced:
+By default, an object is exported via JavaScript containing the source code and a map of the mangled uniforms and
+constants:
 ```javascript
 module.exports = {
   sourceCode: "uniform vec3 A;uniform float B;/* ... More minified GLSL code here */",
@@ -113,6 +114,68 @@ import { GlslShader, GlslVariable, GlslVariableMap } from 'webpack-glsl-minify';
 let shader = require('./myshader.glsl') as GlslShader;
 ```
 
+## Loader Options
+
+```javascript
+module: {
+  rules: [
+    {
+      test: /\.glsl$/,
+      use: {
+        loader: 'webpack-glsl-minify',
+        options: {
+          output: 'object',
+          preserveDefines: false,
+          preserveUniforms: false,
+          preserveVariables: false,
+          nomangle: [ 'variable1', 'variable2' ]
+        }
+      }
+    }
+  ]
+},
+resolve: {
+  extensions: [ '.glsl' ]
+}
+```
+
+This loader also supports the following loader-specific options:
+
+* `output`: Default `'object'`, which outputs JavaScript code which exports an object described in the section above.
+    Alternatively, `'source'` may be specified which exports only a string containing the source code instead.
+    Selecting `'source'` automatically disables mangling of uniforms as there is no output map of the mangled names.
+* `preserveDefines`: Default `false`. Disables name mangling of `#define`s.
+* `preserveUniforms`: Default `false`. Disables name mangling of uniforms.
+* `preserveVariables`: Default `false`. Disables name mangling of variables.
+* `nomangle`: Specifies an array of additional variable names or keywords to explicitly disable name mangling.
+
+## Using Without Webpack
+
+Additionally, webpack-glsl-minify provides a command-line tool which can be used as a build step without Webpack. By
+default, it produces `.js` files for each of the input `.glsl` files specified, output in the same directory as the
+source `.glsl`. Alternatively, the `-outDir` parameter may be used to produce output in a separate output directory
+mirroring the input directory layout.
+
+```console
+$ npx webpack-glsl-minify --help
+webpack-glsl-minify <files..> [options]
+
+Minifies one or more GLSL files. Input files may be specified in glob syntax.
+
+Options:
+  --version            Show version number                             [boolean]
+  --ext, -e            Extension for output files      [string] [default: ".js"]
+  --outDir, -o         Output base directory. By default, files are output to
+                       the same directory as the input .glsl file.      [string]
+  --output             Output format
+                 [choices: "object", "source", "sourceOnly"] [default: "object"]
+  --preserveDefines    Disables name mangling of #defines              [boolean]
+  --preserveUniforms   Disables name mangling of uniforms              [boolean]
+  --preserveVariables  Disables name mangling of variables             [boolean]
+  --nomangle           Disables name mangling for a set of keywords      [array]
+  --help               Show help                                       [boolean]
+```
+
 ## Compiling From Source
 The source code is written in TypeScript. The build script supports two commands:
 
@@ -120,5 +183,5 @@ The source code is written in TypeScript. The build script supports two commands
 * `npm run test` - Runs unit tests
 
 ## License
-Copyright (c) 2018-2019 [Leo C. Singleton IV](https://www.leosingleton.com/).
+Copyright (c) 2018-2020 [Leo C. Singleton IV](https://www.leosingleton.com/).
 This software is licensed under the MIT License.
