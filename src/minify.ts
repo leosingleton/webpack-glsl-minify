@@ -115,7 +115,10 @@ let glslReservedKeywords = [
   // Derivative functions
   'dFdx', 'dFdxCoarse', 'dFdxFine',
   'dFdy', 'dFdyCoarse', 'dFdyFine',
-  'fwidth', 'fwidthCoarse', 'fwidthFine'
+  'fwidth', 'fwidthCoarse', 'fwidthFine',
+
+  // Miscellaneous
+  'discard'
 ];
 
 /**
