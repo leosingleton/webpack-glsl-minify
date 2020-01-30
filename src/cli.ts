@@ -26,32 +26,32 @@ var argv = yargs
   .demandCommand()
   .options({
     'ext': {
-      'alias': 'e',
-      'default': '.js',
-      'describe': 'Extension for output files',
-      'type': 'string'
+      alias: 'e',
+      default: '.js',
+      describe: 'Extension for output files',
+      type: 'string'
     },
     'outDir': {
-      'alias': 'o',
-      'describe': 'Output base directory. By default, files are output to the same directory as the input .glsl file.',
-      'type': 'string'
+      alias: 'o',
+      describe: 'Output base directory. By default, files are output to the same directory as the input .glsl file.',
+      type: 'string'
     },
     'output': {
-      'choices': outputFormats,
-      'describe': 'Output format',
-      'default': 'object'
+      choices: outputFormats,
+      describe: 'Output format',
+      default: 'object'
     },
     'preserveDefines': {
-      'describe': 'Disables name mangling of #defines',
-      'type': 'boolean'
+      describe: 'Disables name mangling of #defines',
+      type: 'boolean'
     },
     'preserveUniforms': {
-      'describe': 'Disables name mangling of uniforms',
-      'type': 'boolean'
+      describe: 'Disables name mangling of uniforms',
+      type: 'boolean'
     },
     'preserveVariables': {
-      'describe': 'Disables name mangling of variables',
-      'type': 'boolean'
+      describe: 'Disables name mangling of variables',
+      type: 'boolean'
     }
   })
   .help()
