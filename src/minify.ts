@@ -273,7 +273,7 @@ export function nullDirname(p: string): string {
 /** Options for the GLSL shader minifier */
 export interface GlslMinifyOptions {
   /** Output format. Default = 'object'. */
-  outputFormat?: GlslOutputFormat;
+  output?: GlslOutputFormat;
 
   /** Disables name mangling of #defines. Default = false. */
   preserveDefines?: boolean;
@@ -314,7 +314,7 @@ export class GlslMinify {
     // If output type is not object, disable mangling as we have no way of returning the map of the mangled names of
     // uniforms.
     options = options || {};
-    if (options.outputFormat && options.outputFormat !== 'object') {
+    if (options.output && options.output !== 'object') {
       options.preserveUniforms = true;
     }
 
@@ -629,7 +629,7 @@ export class GlslMinify {
   public async executeAndStringify(content: string): Promise<string> {
     let program = await this.execute(content);
 
-    switch (this.options.outputFormat) {
+    switch (this.options.output) {
       case 'sourceOnly':
         return program.sourceCode;
 

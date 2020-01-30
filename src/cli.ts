@@ -12,7 +12,7 @@ interface Arguments {
   files: string[];
   ext: string;
   outDir?: string;
-  outputFormat?: GlslOutputFormat;
+  output?: GlslOutputFormat;
   preserveDefines?: boolean;
   preserveUniforms?: boolean;
   preserveVariables?: boolean;
@@ -36,7 +36,7 @@ var argv = yargs
       'describe': 'Output base directory. By default, files are output to the same directory as the input .glsl file.',
       'type': 'string'
     },
-    'outputFormat': {
+    'output': {
       'choices': outputFormats,
       'describe': 'Output format',
       'default': 'object'
@@ -59,7 +59,7 @@ var argv = yargs
 
 // Create minifier
 let glsl = new GlslMinify({
-  outputFormat: argv.outputFormat,
+  output: argv.output,
   preserveDefines: argv.preserveDefines,
   preserveUniforms: argv.preserveUniforms,
   preserveVariables: argv.preserveVariables
