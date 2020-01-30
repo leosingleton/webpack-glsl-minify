@@ -272,6 +272,9 @@ export function nullDirname(p: string): string {
 
 /** Options for the GLSL shader minifier */
 export interface GlslMinifyOptions {
+  /** Output format. Default = 'object'. */
+  outputFormat?: GlslOutputFormat;
+
   /** Disables name mangling of #defines. Default = false. */
   preserveDefines?: boolean;
 
@@ -281,6 +284,19 @@ export interface GlslMinifyOptions {
   /** Disables name mangling of variables. Default = false. */
   preserveVariables?: boolean;
 }
+
+/**
+ * Output format. Default is 'object'.
+ * 
+ * 'object': Outputs a JavaScript file exporting an object. The object contains the source code and map of mangled
+ *    uniforms and consts.
+ * 
+ * 'source': Outputs a JavaScript file exporting the source code as a string. Automatically disables mangling.
+ * 
+ * 'sourceOnly': Outputs a GLSL file without the JavaScript wrapper. Automatically disables mangling. Only supported
+ *    in the CLI app, not the Webpack loader.
+ */
+export type GlslOutputFormat = 'object' | 'source' | 'sourceOnly';
 
 /** GLSL shader minifier */
 export class GlslMinify {
@@ -295,7 +311,14 @@ export class GlslMinify {
    *    support reading files from the local disk.
    */
   constructor(options?: GlslMinifyOptions, readFile = nullReadFile, dirname = nullDirname) {
-    this.options = options || {};
+    // If output type is not object, disable mangling as we have no way of returning the map of the mangled names of
+    // uniforms.
+    options = options || {};
+    if (options.outputFormat && options.outputFormat !== 'object') {
+      options.preserveUniforms = true;
+    }
+
+    this.options = options;
     this.readFile = readFile;
     this.dirname = dirname;
   }
@@ -605,7 +628,18 @@ export class GlslMinify {
 
   public async executeAndStringify(content: string): Promise<string> {
     let program = await this.execute(content);
-    return 'module.exports = ' + GlslMinify.stringify(program);
+
+    switch (this.options.outputFormat) {
+      case 'sourceOnly':
+        return program.sourceCode;
+
+      case 'source':
+        return 'modules.exports = ' + GlslMinify.stringify(program.sourceCode);
+
+      case 'object':
+      default:
+        return 'module.exports = ' + GlslMinify.stringify(program);
+    }
   }
 
   /** Similar to JSON.stringify(), except without double-quotes around property names */

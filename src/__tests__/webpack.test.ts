@@ -48,4 +48,11 @@ describe('Webpack Loader', () => {
     expect(output).toContain('u_cb;');
     expect(output).toContain('mat3 transform');
   });
+
+  it('Executes with output = source', async () => {
+    let output = await runWebpack('webpack.test3.js');
+    expect(output).toContain('gl_FragColor=vec4');
+    expect(output).toContain('u_cb;');                      // Uniform mangling is disables
+    expect(output.indexOf('mat3 transform')).toEqual(-1);   // Variables are still minified
+  });
 });

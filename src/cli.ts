@@ -2,7 +2,7 @@
 // Copyright 2018-2020 Leo C. Singleton IV <leo@leosingleton.com>
 // Entry point when running "npx webpack-glsl-minify ..." on the command line
 
-import { GlslMinify } from './minify';
+import { GlslMinify, GlslOutputFormat } from './minify';
 import { nodeDirname, nodeReadFile } from './node';
 import { writeFileSync } from 'fs';
 import * as path from 'path';
@@ -12,10 +12,13 @@ interface Arguments {
   files: string[];
   ext: string;
   outDir?: string;
+  outputFormat?: GlslOutputFormat;
   preserveDefines?: boolean;
   preserveUniforms?: boolean;
   preserveVariables?: boolean;
 }
+
+const outputFormats: GlslOutputFormat[] = [ 'object', 'source', 'sourceOnly' ];
 
 // Validate and parse command line arguments. yargs exits and displays help on invalid arguments.
 var argv = yargs
@@ -32,6 +35,11 @@ var argv = yargs
       'alias': 'o',
       'describe': 'Output base directory. By default, files are output to the same directory as the input .glsl file.',
       'type': 'string'
+    },
+    'outputFormat': {
+      'choices': outputFormats,
+      'describe': 'Output format',
+      'default': 'object'
     },
     'preserveDefines': {
       'describe': 'Disables name mangling of #defines',
@@ -51,6 +59,7 @@ var argv = yargs
 
 // Create minifier
 let glsl = new GlslMinify({
+  outputFormat: argv.outputFormat,
   preserveDefines: argv.preserveDefines,
   preserveUniforms: argv.preserveUniforms,
   preserveVariables: argv.preserveVariables
