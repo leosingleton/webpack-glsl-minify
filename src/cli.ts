@@ -14,6 +14,7 @@ interface Arguments {
   ext: string;
   outDir?: string;
   output?: GlslOutputFormat;
+  stripVersion?: boolean;
   preserveDefines?: boolean;
   preserveUniforms?: boolean;
   preserveVariables?: boolean;
@@ -43,6 +44,10 @@ var argv = yargs
       describe: 'Output format',
       default: 'object'
     },
+    'stripVersion': {
+      describe: 'Strips any #version directives',
+      type: 'boolean'
+    },
     'preserveDefines': {
       describe: 'Disables name mangling of #defines',
       type: 'boolean'
@@ -66,6 +71,7 @@ var argv = yargs
 // Create minifier
 let glsl = new GlslMinify({
   output: argv.output,
+  stripVersion: argv.stripVersion,
   preserveDefines: argv.preserveDefines,
   preserveUniforms: argv.preserveUniforms,
   preserveVariables: argv.preserveVariables,

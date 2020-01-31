@@ -275,6 +275,9 @@ export interface GlslMinifyOptions {
   /** Output format. Default = 'object'. */
   output?: GlslOutputFormat;
 
+  /** Strips any #version directives. Default = false. */
+  stripVersion?: boolean;
+
   /** Disables name mangling of #defines. Default = false. */
   preserveDefines?: boolean;
 
@@ -355,6 +358,11 @@ export class GlslMinify {
 
     // Remove carriage returns. Use newlines only.
     output = output.replace('\r', '');
+
+    // Strip any #version directives
+    if (this.options.stripVersion) {
+      output = output.replace(/#version.+/, '');
+    }
 
     // Remove C style comments
     let cStyleRegex = /\/\*[\s\S]*?\*\//g;

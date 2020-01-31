@@ -1,4 +1,4 @@
-# GLSL Loader, Preprocessor, and Minifier for Webpack
+# GLSL Preprocessor, Minifier, and Webpack Loader
 [![Build Status](https://dev.azure.com/leosingleton/webpack-glsl-minify/_apis/build/status/leosingleton.webpack-glsl-minify?branchName=master)](https://dev.azure.com/leosingleton/webpack-glsl-minify/_build/latest?definitionId=1?branchName=master)
 [![npm version](https://badge.fury.io/js/webpack-glsl-minify.svg)](https://badge.fury.io/js/webpack-glsl-minify)
 
@@ -125,6 +125,7 @@ module: {
         loader: 'webpack-glsl-minify',
         options: {
           output: 'object',
+          stripVersion: false,
           preserveDefines: false,
           preserveUniforms: false,
           preserveVariables: false,
@@ -144,6 +145,7 @@ This loader also supports the following loader-specific options:
 * `output`: Default `'object'`, which outputs JavaScript code which exports an object described in the section above.
     Alternatively, `'source'` may be specified which exports only a string containing the source code instead.
     Selecting `'source'` automatically disables mangling of uniforms as there is no output map of the mangled names.
+* `stripVersion`: Default `false`. Strips any `#version` directives.
 * `preserveDefines`: Default `false`. Disables name mangling of `#define`s.
 * `preserveUniforms`: Default `false`. Disables name mangling of uniforms.
 * `preserveVariables`: Default `false`. Disables name mangling of variables.
@@ -169,6 +171,7 @@ Options:
                        the same directory as the input .glsl file.      [string]
   --output             Output format
                  [choices: "object", "source", "sourceOnly"] [default: "object"]
+  --stripVersion       Strips any #version directives                  [boolean]
   --preserveDefines    Disables name mangling of #defines              [boolean]
   --preserveUniforms   Disables name mangling of uniforms              [boolean]
   --preserveVariables  Disables name mangling of variables             [boolean]
