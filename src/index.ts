@@ -1,6 +1,6 @@
 /*!
  * webpack-glsl-minify
- * Copyright 2018-2019 Leo C. Singleton IV <leo@leosingleton.com>
+ * Copyright 2018-2020 Leo C. Singleton IV <leo@leosingleton.com>
  * Released under the MIT license
  */
 

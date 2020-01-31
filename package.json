@@ -1,6 +1,6 @@
 {
   "name": "webpack-glsl-minify",
-  "version": "1.1.2",
+  "version": "1.2.0",
   "author": "Leo C. Singleton IV <leo@leosingleton.com>",
   "description": "GLSL Loader, Preprocessor, and Minifier for Webpack",
   "homepage": "https://github.com/leosingleton/webpack-glsl-minify",
@@ -10,23 +10,40 @@
     "type": "git",
     "url": "https://github.com/leosingleton/webpack-glsl-minify.git"
   },
+  "dependencies": {
+    "glob": "^7.1.6",
+    "yargs": "^15.1.0"
+  },
   "devDependencies": {
+    "@types/glob": "^7.1.1",
     "@types/jasmine-node": "^1.14.34",
     "@types/loader-utils": "^1.1.3",
-    "@types/webpack": "^4.39.1",
-    "jasmine": "^3.4.0",
+    "@types/webpack": "^4.41.3",
+    "@types/yargs": "11.0.0",
+    "@typescript-eslint/eslint-plugin": "^2.18.0",
+    "@typescript-eslint/parser": "^2.18.0",
+    "eslint": "^6.8.0",
+    "jasmine": "^3.5.0",
     "jasmine-xml-reporter": "^1.2.1",
     "loader-utils": "^1.2.3",
-    "typescript": "^3.6.2"
+    "typescript": "^3.7.5",
+    "webpack": "^4.41.5",
+    "webpack-cli": "^3.3.10"
   },
   "scripts": {
     "build": "npx tsc",
-    "test": "./node_modules/jasmine-xml-reporter/bin/jasmine.js ./build/__tests__/minify.test.js --junitreport --output=build/"
+    "lint": "npx eslint \"src/**/*.ts\"",
+    "test": "./node_modules/jasmine-xml-reporter/bin/jasmine.js ./build/__tests__/*.test.js --junitreport --output=build/"
   },
   "files": [
+    "bin/*",
     "build/*.d.ts",
     "build/*.js"
   ],
+  "bin": {
+    "webpack-glsl-minify": "bin/webpack-glsl-minify",
+    "wgm": "bin/wgm"
+  },
   "main": "build/index.js",
   "types": "build/index.d.ts"
 }

@@ -1,5 +1,5 @@
 // src/webpack.ts
-// Copyright 2018-2019 Leo C. Singleton IV <leo@leosingleton.com>
+// Copyright 2018-2020 Leo C. Singleton IV <leo@leosingleton.com>
 
 import { GlslMinify, GlslMinifyOptions, GlslFile } from './minify';
 
@@ -43,11 +43,10 @@ export async function webpackLoader(content: string): Promise<void> {
   try {
     let glsl = new GlslMinify(options, (filename, directory) => webpackReadFile(loader, filename, directory),
       nodeDirname);
-    let program = await glsl.execute(content);
-    let code = 'module.exports = ' + GlslMinify.stringify(program);
+    let code = await glsl.executeAndStringify(content);
 
     callback(null, code);
   } catch (err) {
     callback(err);
   }
-};
+}

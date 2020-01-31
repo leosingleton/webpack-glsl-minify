@@ -1,5 +1,5 @@
 // src/minify.ts
-// Copyright 2018-2019 Leo C. Singleton IV <leo@leosingleton.com>
+// Copyright 2018-2020 Leo C. Singleton IV <leo@leosingleton.com>
 
 export interface GlslVariable {
   /** Variable type, e.g. 'vec3' or 'float' */
@@ -115,7 +115,10 @@ let glslReservedKeywords = [
   // Derivative functions
   'dFdx', 'dFdxCoarse', 'dFdxFine',
   'dFdy', 'dFdyCoarse', 'dFdyFine',
-  'fwidth', 'fwidthCoarse', 'fwidthFine'
+  'fwidth', 'fwidthCoarse', 'fwidthFine',
+
+  // Miscellaneous
+  'discard'
 ];
 
 /**
@@ -269,6 +272,12 @@ export function nullDirname(p: string): string {
 
 /** Options for the GLSL shader minifier */
 export interface GlslMinifyOptions {
+  /** Output format. Default = 'object'. */
+  output?: GlslOutputFormat;
+
+  /** Strips any #version directives. Default = false. */
+  stripVersion?: boolean;
+
   /** Disables name mangling of #defines. Default = false. */
   preserveDefines?: boolean;
 
@@ -277,7 +286,23 @@ export interface GlslMinifyOptions {
 
   /** Disables name mangling of variables. Default = false. */
   preserveVariables?: boolean;
+
+  /** Additional variable names or keywords to explicitly disable name mangling */
+  nomangle?: string[];
 }
+
+/**
+ * Output format. Default is 'object'.
+ * 
+ * 'object': Outputs a JavaScript file exporting an object. The object contains the source code and map of mangled
+ *    uniforms and consts.
+ * 
+ * 'source': Outputs a JavaScript file exporting the source code as a string. Automatically disables mangling.
+ * 
+ * 'sourceOnly': Outputs a GLSL file without the JavaScript wrapper. Automatically disables mangling. Only supported
+ *    in the CLI app, not the Webpack loader.
+ */
+export type GlslOutputFormat = 'object' | 'source' | 'sourceOnly';
 
 /** GLSL shader minifier */
 export class GlslMinify {
@@ -292,7 +317,14 @@ export class GlslMinify {
    *    support reading files from the local disk.
    */
   constructor(options?: GlslMinifyOptions, readFile = nullReadFile, dirname = nullDirname) {
-    this.options = options || {};
+    // If output type is not object, disable mangling as we have no way of returning the map of the mangled names of
+    // uniforms.
+    options = options || {};
+    if (options.output && options.output !== 'object') {
+      options.preserveUniforms = true;
+    }
+
+    this.options = options;
     this.readFile = readFile;
     this.dirname = dirname;
   }
@@ -300,9 +332,12 @@ export class GlslMinify {
   /** List of tokens minified by the parser */
   private tokens = new TokenMap();
 
-  public async execute(content: string): Promise<GlslShader> {
+  public execute(content: string): Promise<GlslShader> {
     let input: GlslFile = { contents: content };
+    return this.executeFile(input);
+  }
 
+  public async executeFile(input: GlslFile): Promise<GlslShader> {
     // Perform the minification. This takes three separate passes over the input.
     let pass1 = await this.preprocessPass1(input);
     let pass2 = this.preprocessPass2(pass1);
@@ -323,6 +358,11 @@ export class GlslMinify {
 
     // Remove carriage returns. Use newlines only.
     output = output.replace('\r', '');
+
+    // Strip any #version directives
+    if (this.options.stripVersion) {
+      output = output.replace(/#version.+/, '');
+    }
 
     // Remove C style comments
     let cStyleRegex = /\/\*[\s\S]*?\*\//g;
@@ -380,6 +420,11 @@ export class GlslMinify {
    */
   protected preprocessPass2(content: string): string {
     let output = content;
+
+    // Disable name mangling for keywords provided via options
+    if (this.options.nomangle) {
+      this.tokens.reserveKeywords(this.options.nomangle);
+    }
 
     // Process @nomangle directives
     let nomangleRegex = /@nomangle\s+(.*)/;
@@ -508,83 +553,87 @@ export class GlslMinify {
     let prevToken: string;
     let prevType = TokenType.ttNone;
     let prevPrevType = TokenType.ttNone;
-    while (match = tokenRegex.exec(content)) {
+    while ((match = tokenRegex.exec(content))) {
       let token = match[0];
       let type = GlslMinify.getTokenType(token);
 
       switch (type) {
-        case TokenType.ttPreprocessor:
-          // Preprocessor directives must always begin on a new line
-          if (output !== '' && !output.endsWith('\n')) {
-            output += '\n';
-          }
-
-          // Special case for #define: we want to minify the value being defined
-          let defineRegex = /#define\s(\w+)\s(.*)/;
-          let subMatch = defineRegex.exec(token);
-          if (subMatch) {
-            if (this.options.preserveDefines) {
-              this.tokens.reserveKeywords([subMatch[1]]);
+        case TokenType.ttPreprocessor: {
+            // Preprocessor directives must always begin on a new line
+            if (output !== '' && !output.endsWith('\n')) {
+              output += '\n';
             }
-            let minToken = this.tokens.minifyToken(subMatch[1]);
-            output += '#define ' + minToken + ' ' + subMatch[2] + '\n';
+
+            // Special case for #define: we want to minify the value being defined
+            let defineRegex = /#define\s(\w+)\s(.*)/;
+            let subMatch = defineRegex.exec(token);
+            if (subMatch) {
+              if (this.options.preserveDefines) {
+                this.tokens.reserveKeywords([subMatch[1]]);
+              }
+              let minToken = this.tokens.minifyToken(subMatch[1]);
+              output += '#define ' + minToken + ' ' + subMatch[2] + '\n';
+              break;
+            }
+
+            // Preprocessor directives are special in that they require the newline
+            output += token + '\n';
             break;
           }
 
-          // Preprocessor directives are special in that they require the newline
-          output += token + '\n';
-          break;
-
-        case TokenType.ttNumeric:
-          // Special case for numerics: we can omit a zero following a dot (e.g. "1." is the same as "1.0") in GLSL
-          if (token === '0' && prevType === TokenType.ttDot) {
-            break;
+        case TokenType.ttNumeric: {
+            // Special case for numerics: we can omit a zero following a dot (e.g. "1." is the same as "1.0") in GLSL
+            if (token === '0' && prevType === TokenType.ttDot) {
+              break;
+            }
           }
-          // Fall through to below
+          // eslint-disable-next-line no-fallthrough
 
         case TokenType.ttOperator:
-        case TokenType.ttDot:
-          output += token;
-          break;
-
-        case TokenType.ttToken:
-        case TokenType.ttAttribute:
-        case TokenType.ttUniform:
-        case TokenType.ttVarying:
-          // Special case: a token following a dot is a swizzle mask. Leave it as-is.
-          if (prevType === TokenType.ttDot) {
+        case TokenType.ttDot: {
             output += token;
             break;
           }
 
-          // For attribute and varying declarations, turn off minification.
-          if (prevPrevType === TokenType.ttAttribute || prevPrevType === TokenType.ttVarying) {
-            this.tokens.reserveKeywords([token]);
-          }
+        case TokenType.ttToken:
+        case TokenType.ttAttribute:
+        case TokenType.ttUniform:
+        case TokenType.ttVarying: {
+            // Special case: a token following a dot is a swizzle mask. Leave it as-is.
+            if (prevType === TokenType.ttDot) {
+              output += token;
+              break;
+            }
 
-          // Try to minify the token
-          let minToken: string;
-          if (prevPrevType === TokenType.ttUniform) {
-            // This is a special case of a uniform declaration
-            if (this.options.preserveUniforms) {
+            // For attribute and varying declarations, turn off minification.
+            if (prevPrevType === TokenType.ttAttribute || prevPrevType === TokenType.ttVarying) {
               this.tokens.reserveKeywords([token]);
             }
-            minToken = this.tokens.minifyToken(token, prevToken);
-          } else {
-            // Normal token
-            if (this.options.preserveVariables) {
-              this.tokens.reserveKeywords([token]);
-            }
-            minToken = this.tokens.minifyToken(token);
-          }
 
-          // When outputting, if the previous token was not an operator or newline, leave a space.
-          if (prevType !== TokenType.ttOperator && prevType !== TokenType.ttPreprocessor &&
-              prevType !== TokenType.ttNone) {
-            output += ' ';
+            // Try to minify the token
+            let minToken: string;
+            if (prevPrevType === TokenType.ttUniform) {
+              // This is a special case of a uniform declaration
+              if (this.options.preserveUniforms) {
+                this.tokens.reserveKeywords([token]);
+              }
+              minToken = this.tokens.minifyToken(token, prevToken);
+            } else {
+              // Normal token
+              if (this.options.preserveVariables) {
+                this.tokens.reserveKeywords([token]);
+              }
+              minToken = this.tokens.minifyToken(token);
+            }
+
+            // When outputting, if the previous token was not an operator or newline, leave a space.
+            if (prevType !== TokenType.ttOperator && prevType !== TokenType.ttPreprocessor &&
+                prevType !== TokenType.ttNone) {
+              output += ' ';
+            }
+            output += minToken;
+            break;
           }
-          output += minToken;
-          break;
       }
 
       // Advance to the next token
@@ -594,6 +643,27 @@ export class GlslMinify {
     }
 
     return output;
+  }
+
+  public executeAndStringify(content: string): Promise<string> {
+    let input: GlslFile = { contents: content };
+    return this.executeFileAndStringify(input);
+  }
+
+  public async executeFileAndStringify(input: GlslFile): Promise<string> {
+    let program = await this.executeFile(input);
+
+    switch (this.options.output) {
+      case 'sourceOnly':
+        return program.sourceCode;
+
+      case 'source':
+        return 'modules.exports = ' + GlslMinify.stringify(program.sourceCode);
+
+      case 'object':
+      default:
+        return 'module.exports = ' + GlslMinify.stringify(program);
+    }
   }
 
   /** Similar to JSON.stringify(), except without double-quotes around property names */
