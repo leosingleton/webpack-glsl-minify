@@ -2,9 +2,9 @@
 // Copyright 2018-2020 Leo C. Singleton IV <leo@leosingleton.com>
 // Entry point when running "npx webpack-glsl-minify ..." on the command line
 
+import * as fsAsync from './fsAsync';
 import { GlslMinify, GlslOutputFormat } from './minify';
 import { nodeDirname, nodeReadFile } from './node';
-import { writeFileSync } from 'fs';
 import glob = require('glob');
 import * as path from 'path';
 import * as yargs from 'yargs';
@@ -97,15 +97,15 @@ function processGlob(pattern: string): void {
 
 async function processFile(file: string): Promise<void> {
   // Determine the output file path
-  let dirname = argv.outDir ?? path.dirname(file);
   let filename = path.basename(file);
-  let outfile = path.resolve(dirname, filename + argv.ext);
+  let outfile = path.resolve(argv.outDir || '', path.dirname(file), filename + argv.ext);
   console.log(`${file} => ${outfile}`);
 
   // Read the input file and minify it
   let rawGlsl = await nodeReadFile(file);
-  let minifiedGlsl = await glsl.executeAndStringify(rawGlsl.contents);
+  let minifiedGlsl = await glsl.executeFileAndStringify(rawGlsl);
 
-  // Write output file
-  writeFileSync(outfile, minifiedGlsl);
+  // Write output file, ensuring output directory exists first
+  await fsAsync.mkdirp(outfile);
+  await fsAsync.writeFile(outfile, minifiedGlsl);
 }

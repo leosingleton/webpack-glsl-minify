@@ -1,25 +1,21 @@
 // src/node.ts
-// Copyright 2018-2019 Leo C. Singleton IV <leo@leosingleton.com>
+// Copyright 2018-2020 Leo C. Singleton IV <leo@leosingleton.com>
 
+import * as fsAsync from './fsAsync';
 import { GlslFile } from './minify';
-import { readFile } from 'fs';
-import { dirname } from 'path';
+import * as path from 'path';
 
 /** Implementation of ReadFileImpl for NodeJS */
-export function nodeReadFile(filename: string, directory?: string): Promise<GlslFile> {
-  return new Promise<GlslFile>((resolve, reject) => {
-    readFile(filename, 'utf-8', (err, data) => {
-      if (!err) {
-        // Success
-        resolve({ path: filename, contents: data });
-      } else {
-        reject(err);
-      }
-    });
-  });
+export async function nodeReadFile(filename: string, directory?: string): Promise<GlslFile> {
+  // Resolve the full file path
+  let filePath = path.resolve(directory || '', filename);
+
+  // Read the file
+  let data = await fsAsync.readFile(filePath, 'utf-8');
+  return { path: filePath, contents: data };
 }
 
 /** Implementation of DirnameImpl for NodeJS and Webpack */
 export function nodeDirname(p: string): string {
-  return dirname(p);
+  return path.dirname(p);
 }

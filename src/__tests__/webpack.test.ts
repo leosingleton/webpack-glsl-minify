@@ -12,7 +12,7 @@ async function runWebpack(configFile: string): Promise<string> {
     fs.exists(workingDir, exists => {
       if (!exists) {
         reject(`Failed to find test directory: ${workingDir}`);
-      }      
+      }
 
       // Launch Webpack
       cp.exec(`npx webpack --mode=production --config=${configFile}`, { cwd: workingDir }, (err, stdout, stderr) => {
@@ -28,7 +28,7 @@ async function runWebpack(configFile: string): Promise<string> {
           }
 
           resolve(data);
-        });  
+        });
       });
     });
   });

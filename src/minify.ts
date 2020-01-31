@@ -329,9 +329,12 @@ export class GlslMinify {
   /** List of tokens minified by the parser */
   private tokens = new TokenMap();
 
-  public async execute(content: string): Promise<GlslShader> {
+  public execute(content: string): Promise<GlslShader> {
     let input: GlslFile = { contents: content };
+    return this.executeFile(input);
+  }
 
+  public async executeFile(input: GlslFile): Promise<GlslShader> {
     // Perform the minification. This takes three separate passes over the input.
     let pass1 = await this.preprocessPass1(input);
     let pass2 = this.preprocessPass2(pass1);
@@ -634,8 +637,13 @@ export class GlslMinify {
     return output;
   }
 
-  public async executeAndStringify(content: string): Promise<string> {
-    let program = await this.execute(content);
+  public executeAndStringify(content: string): Promise<string> {
+    let input: GlslFile = { contents: content };
+    return this.executeFileAndStringify(input);
+  }
+
+  public async executeFileAndStringify(input: GlslFile): Promise<string> {
+    let program = await this.executeFile(input);
 
     switch (this.options.output) {
       case 'sourceOnly':

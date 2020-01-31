@@ -128,7 +128,7 @@ describe('GlslMinify', () => {
   it('Minifies a vertex shader', async (done) => {
     let glsl = new GlslMinifyInternal({}, nodeReadFile, nodeDirname);
     let file = await glsl.readFile('tests/glsl/minify1.glsl');
-    let output = await glsl.execute(file.contents);
+    let output = await glsl.executeFile(file);
 
     // Read the expected output
     let expected = await glsl.readFile('tests/glsl/minify1.min.glsl');
@@ -141,7 +141,7 @@ describe('GlslMinify', () => {
   it('Minifies a fragment shader', async (done) => {
     let glsl = new GlslMinifyInternal({}, nodeReadFile, nodeDirname);
     let file = await glsl.readFile('tests/glsl/minify2.glsl');
-    let output = await glsl.execute(file.contents);
+    let output = await glsl.executeFile(file);
 
     // Read the expected output
     let expected = await glsl.readFile('tests/glsl/minify2.min.glsl');
@@ -158,7 +158,7 @@ describe('GlslMinify', () => {
   it('Minifies a complex fragment shader', async (done) => {
     let glsl = new GlslMinifyInternal({}, nodeReadFile, nodeDirname);
     let file = await glsl.readFile('tests/glsl/minify3.glsl');
-    let output = await glsl.execute(file.contents);
+    let output = await glsl.executeFile(file);
 
     // Read the expected output
     let expected = await glsl.readFile('tests/glsl/minify3.min.glsl');
