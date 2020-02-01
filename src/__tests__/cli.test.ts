@@ -1,32 +1,20 @@
 // src/__tests__/cli.test.ts
 // Copyright 2018-2020 Leo C. Singleton IV <leo@leosingleton.com>
 
-import * as cp from 'child_process';
-import * as fs from 'fs';
+import * as fsAsync from '../fsAsync';
 import * as path from 'path';
 
 async function runCli(inputFile: string, params: string): Promise<string> {
-  return new Promise((resolve, reject) => {
-    // Launch CLI app
-    let workingDir = path.resolve(__dirname, '../..'); // git repo root
-    let outDir = 'tests/cli/build';
-    let cmdline = `bin/webpack-glsl-minify ${inputFile} ${params} --outDir ${outDir}`;
-    cp.exec(cmdline, { cwd: workingDir }, (err, stdout, stderr) => {
-      if (err) {
-        reject(`${err}\n${stdout}\n${stderr}\n${workingDir}`);
-      }
+  // Launch CLI app
+  let workingDir = path.resolve(__dirname, '../..'); // git repo root
+  let outDir = 'tests/cli/build';
+  let cmdline = `bin/webpack-glsl-minify ${inputFile} ${params} --outDir ${outDir}`;
+  await fsAsync.exec(cmdline, workingDir);
 
-      // Read the output file produced by Webpack and return it
-      let outputFile = path.resolve(__dirname, workingDir, outDir, inputFile + '.js');
-      fs.readFile(outputFile, 'utf-8', (err, data) => {
-        if (err) {
-          reject(err);
-        }
-
-        resolve(data);
-      });
-    });
-  });
+  // Read the output file produced by Webpack and return it
+  let outputFile = path.resolve(__dirname, workingDir, outDir, inputFile + '.js');
+  let data = await fsAsync.readFile(outputFile, 'utf-8');
+  return data;
 }
 
 describe('CLI app', () => {

@@ -2,6 +2,7 @@
 // Copyright 2018-2020 Leo C. Singleton IV <leo@leosingleton.com>
 // Wrappers around Node's filesystem functions to make them use async patterns
 
+import * as cp from 'child_process';
 import * as fs from 'fs';
 import * as path from 'path';
 
@@ -54,4 +55,15 @@ export async function mkdirp(p: string): Promise<void> {
 
   await mkdirp(dirname);
   await mkdir(dirname);
+}
+
+export function exec(command: string, cwd: string): Promise<void> {
+  return new Promise((resolve, reject) => {
+    cp.exec(command, { cwd: cwd }, (err, stdout, stderr) => {
+      if (err) {
+        reject(`${err}\n${stdout}\n${stderr}`);
+      }
+      resolve();
+    });
+  });
 }
