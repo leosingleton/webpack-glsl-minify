@@ -43,12 +43,12 @@ export function mkdir(p: fs.PathLike): Promise<void> {
         reject(err);
       }
       resolve();
-    })
+    });
   });
 }
 
 export async function mkdirp(p: string): Promise<void> {
-  let dirname = path.dirname(p);
+  const dirname = path.dirname(p);
   if (await exists(dirname)) {
     return;
   }
@@ -59,7 +59,7 @@ export async function mkdirp(p: string): Promise<void> {
 
 export function exec(command: string, cwd: string): Promise<void> {
   return new Promise((resolve, reject) => {
-    cp.exec(command, { cwd: cwd }, (err, stdout, stderr) => {
+    cp.exec(command, { cwd }, (err, stdout, stderr) => {
       if (err) {
         reject(`${err}\n${stdout}\n${stderr}`);
       }

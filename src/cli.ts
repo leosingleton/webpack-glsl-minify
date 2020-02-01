@@ -24,43 +24,43 @@ interface Arguments {
 const outputFormats: GlslOutputFormat[] = [ 'object', 'source', 'sourceOnly' ];
 
 // Validate and parse command line arguments. yargs exits and displays help on invalid arguments.
-var argv = yargs
+const argv = yargs
   .command('$0 <files..> [options]', 'Minifies one or more GLSL files. Input files may be specified in glob syntax.')
   .demandCommand()
   .options({
-    'ext': {
+    ext: {
       alias: 'e',
       default: '.js',
       describe: 'Extension for output files',
       type: 'string'
     },
-    'outDir': {
+    outDir: {
       alias: 'o',
       describe: 'Output base directory. By default, files are output to the same directory as the input .glsl file.',
       type: 'string'
     },
-    'output': {
+    output: {
       choices: outputFormats,
       describe: 'Output format',
       default: 'object'
     },
-    'stripVersion': {
+    stripVersion: {
       describe: 'Strips any #version directives',
       type: 'boolean'
     },
-    'preserveDefines': {
+    preserveDefines: {
       describe: 'Disables name mangling of #defines',
       type: 'boolean'
     },
-    'preserveUniforms': {
+    preserveUniforms: {
       describe: 'Disables name mangling of uniforms',
       type: 'boolean'
     },
-    'preserveVariables': {
+    preserveVariables: {
       describe: 'Disables name mangling of variables',
       type: 'boolean'
     },
-    'nomangle': {
+    nomangle: {
       describe: 'Disables name mangling for a set of keywords',
       type: 'array'
     }
@@ -69,7 +69,7 @@ var argv = yargs
   .argv as any as Arguments;
 
 // Create minifier
-let glsl = new GlslMinify({
+const glsl = new GlslMinify({
   output: argv.output,
   stripVersion: argv.stripVersion,
   preserveDefines: argv.preserveDefines,
@@ -96,20 +96,20 @@ function processGlob(pattern: string): void {
       processFile(file).then(() => {}, err => {
         console.log(err);
         process.exit(-1);
-      });    
+      });
     });
   });
 }
 
 async function processFile(file: string): Promise<void> {
   // Determine the output file path
-  let filename = path.basename(file);
-  let outfile = path.resolve(argv.outDir || '', path.dirname(file), filename + argv.ext);
+  const filename = path.basename(file);
+  const outfile = path.resolve(argv.outDir || '', path.dirname(file), filename + argv.ext);
   console.log(`${file} => ${outfile}`);
 
   // Read the input file and minify it
-  let rawGlsl = await nodeReadFile(file);
-  let minifiedGlsl = await glsl.executeFileAndStringify(rawGlsl);
+  const rawGlsl = await nodeReadFile(file);
+  const minifiedGlsl = await glsl.executeFileAndStringify(rawGlsl);
 
   // Write output file, ensuring output directory exists first
   await fsAsync.mkdirp(outfile);

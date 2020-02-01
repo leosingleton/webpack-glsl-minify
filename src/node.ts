@@ -8,10 +8,10 @@ import * as path from 'path';
 /** Implementation of ReadFileImpl for NodeJS */
 export async function nodeReadFile(filename: string, directory?: string): Promise<GlslFile> {
   // Resolve the full file path
-  let filePath = path.resolve(directory || '', filename);
+  const filePath = path.resolve(directory || '', filename);
 
   // Read the file
-  let data = await fsAsync.readFile(filePath, 'utf-8');
+  const data = await fsAsync.readFile(filePath, 'utf-8');
   return { path: filePath, contents: data };
 }
 

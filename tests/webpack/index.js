@@ -1,4 +1,5 @@
-"use strict";
+'use strict';
 
 // Embed a GLSL file
-let glsl = require('./glsl/test.glsl');
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+const glsl = require('./glsl/test.glsl');

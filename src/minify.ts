@@ -10,7 +10,7 @@ export interface GlslVariable {
 }
 
 /** Map of original unminified names to their minified details */
-export type GlslVariableMap = { [original: string]: GlslVariable };
+export interface GlslVariableMap { [original: string]: GlslVariable }
 
 /** A minified shader output by webpack-glsl-minify */
 export interface GlslShader {
@@ -35,7 +35,7 @@ export interface GlslFile {
 /**
  * List of GLSL reserved keywords to avoid mangling. We automatically include any gl_ variables.
  */
-let glslReservedKeywords = [
+const glslReservedKeywords = [
   // Basic types
   'bool', 'double', 'float', 'int', 'uint',
 
@@ -102,7 +102,7 @@ let glslReservedKeywords = [
 
   // Matrix functions
   'determinant', 'inverse', 'matrixCompMult',
-  
+
   // Interpolation functions
   'mix', 'step', 'smoothstep',
 
@@ -138,11 +138,10 @@ export class TokenMap {
 
   /**
    * Adds keywords to the reserved list to prevent minifying them.
-   * @param keywords 
+   * @param keywords Array of strings containing keywords to preserve
    */
   public reserveKeywords(keywords: string[]): void {
-    for (let n = 0; n < keywords.length; n++) {
-      let keyword = keywords[n];
+    for (const keyword of keywords) {
       if (!this.tokens[keyword]) {
         this.tokens[keyword] = { variableType: undefined, variableName: keyword };
       }
@@ -160,12 +159,12 @@ export class TokenMap {
    * Converts a token number to a name
    */
   public static getMinifiedName(tokenCount: number): string {
-    let num = tokenCount % 52;
-    let offset = (num < 26) ? (num + 65) : (num + 71); // 65 = 'A'; 71 = ('a' - 26)
-    let c = String.fromCharCode(offset);
+    const num = tokenCount % 52;
+    const offset = (num < 26) ? (num + 65) : (num + 71); // 65 = 'A'; 71 = ('a' - 26)
+    const c = String.fromCharCode(offset);
 
     // For tokens over 52, recursively add characters
-    let recurse = Math.floor(tokenCount / 52);
+    const recurse = Math.floor(tokenCount / 52);
     return (recurse === 0) ? c : (this.getMinifiedName(recurse - 1) + c);
   }
 
@@ -177,7 +176,7 @@ export class TokenMap {
    */
   public minifyToken(name: string, uniformType?: string): string {
     // Check whether the token already has an existing minified value
-    let existing = this.tokens[name];
+    const existing = this.tokens[name];
     if (existing) {
       // In the case of a uniform with mangling explicitly disabled, we may already have an entry from the @nomangle
       // directive. But still store the type.
@@ -193,7 +192,7 @@ export class TokenMap {
     if (!name.startsWith('gl_') && name.indexOf('$') === -1) {
       min = TokenMap.getMinifiedName(this.minifiedTokenCount++);
     }
-    
+
     // Allocate a new value
     this.tokens[name] = {
       variableName: min,
@@ -208,9 +207,9 @@ export class TokenMap {
    */
   public getUniforms(): GlslVariableMap {
     // Filter only the tokens that have the type field set
-    let result: GlslVariableMap = {};
-    for (let original in this.tokens) {
-      let token = this.tokens[original];
+    const result: GlslVariableMap = {};
+    for (const original in this.tokens) {
+      const token = this.tokens[original];
       if (token.variableType) {
         result[original] = token;
       }
@@ -256,17 +255,17 @@ export enum TokenType {
 export type ReadFileImpl = (filename: string, directory?: string) => Promise<GlslFile>;
 
 /** Stub implementation of NodeJS's readFile() API to work in browsers and non-NodeJS environments */
-function nullReadFile(filename: string, directory?: string): Promise<GlslFile> {
-  return new Promise<GlslFile>((resolve, reject) => {
+function nullReadFile(_filename: string, _directory?: string): Promise<GlslFile> {
+  return new Promise<GlslFile>((_resolve, reject) => {
     reject(new Error('Not Supported'));
-  })
+  });
 }
 
 /** Implementation of NodeJS's dirname() API */
 export type DirnameImpl = (p: string) => string;
 
 /** Stub implementation of NodeJS's dirname() API to work in browsers and non-NodeJS environments */
-export function nullDirname(p: string): string {
+export function nullDirname(_p: string): string {
   return undefined;
 }
 
@@ -293,12 +292,12 @@ export interface GlslMinifyOptions {
 
 /**
  * Output format. Default is 'object'.
- * 
+ *
  * 'object': Outputs a JavaScript file exporting an object. The object contains the source code and map of mangled
  *    uniforms and consts.
- * 
+ *
  * 'source': Outputs a JavaScript file exporting the source code as a string. Automatically disables mangling.
- * 
+ *
  * 'sourceOnly': Outputs a GLSL file without the JavaScript wrapper. Automatically disables mangling. Only supported
  *    in the CLI app, not the Webpack loader.
  */
@@ -333,15 +332,15 @@ export class GlslMinify {
   private tokens = new TokenMap();
 
   public execute(content: string): Promise<GlslShader> {
-    let input: GlslFile = { contents: content };
+    const input: GlslFile = { contents: content };
     return this.executeFile(input);
   }
 
   public async executeFile(input: GlslFile): Promise<GlslShader> {
     // Perform the minification. This takes three separate passes over the input.
-    let pass1 = await this.preprocessPass1(input);
-    let pass2 = this.preprocessPass2(pass1);
-    let pass3 = this.minifier(pass2);
+    const pass1 = await this.preprocessPass1(input);
+    const pass2 = this.preprocessPass2(pass1);
+    const pass3 = this.minifier(pass2);
 
     return {
       sourceCode: pass3,
@@ -365,29 +364,29 @@ export class GlslMinify {
     }
 
     // Remove C style comments
-    let cStyleRegex = /\/\*[\s\S]*?\*\//g;
+    const cStyleRegex = /\/\*[\s\S]*?\*\//g;
     output = output.replace(cStyleRegex, '');
 
     // Remove C++ style comments
-    let cppStyleRegex = /\/\/[^\n]*/g;
+    const cppStyleRegex = /\/\/[^\n]*/g;
     output = output.replace(cppStyleRegex, '\n');
 
     // Process @include directive
-    let includeRegex = /@include\s+(.*)/;
+    const includeRegex = /@include\s+(.*)/;
     while (true) {
       // Find the next @include directive
-      let match = includeRegex.exec(output);
+      const match = includeRegex.exec(output);
       if (!match) {
         break;
       }
-      let includeFilename = JSON.parse(match[1]);
+      const includeFilename = JSON.parse(match[1]);
 
       // Read the file to include
-      let currentPath = content.path ? this.dirname(content.path) : undefined;
-      let includeFile = await this.readFile(includeFilename, currentPath);
+      const currentPath = content.path ? this.dirname(content.path) : undefined;
+      const includeFile = await this.readFile(includeFilename, currentPath);
 
       // Parse recursively, as the included file may also have @include directives
-      let includeContent = await this.preprocessPass1(includeFile);
+      const includeContent = await this.preprocessPass1(includeFile);
 
       // Replace the @include directive with the file contents
       output = output.replace(includeRegex, includeContent);
@@ -404,7 +403,7 @@ export class GlslMinify {
   private substitutionValueCount = 0;
 
   private assignSubstitionValue(constName: string, constType: string): string {
-    let substitutionValue = '$' + (this.substitutionValueCount++) + '$';
+    const substitutionValue = `$${this.substitutionValueCount++}$`;
     this.tokens.reserveKeywords([substitutionValue]);
 
     this.constValues[constName] = {
@@ -427,16 +426,16 @@ export class GlslMinify {
     }
 
     // Process @nomangle directives
-    let nomangleRegex = /@nomangle\s+(.*)/;
+    const nomangleRegex = /@nomangle\s+(.*)/;
     while (true) {
       // Find the next @nomangle directive
-      let match = nomangleRegex.exec(output);
+      const match = nomangleRegex.exec(output);
       if (!match) {
         break;
       }
 
       // Record the keywords
-      let keywords = match[1].split(/\s/);
+      const keywords = match[1].split(/\s/);
       this.tokens.reserveKeywords(keywords);
 
       // Remove the @nomangle line
@@ -444,15 +443,15 @@ export class GlslMinify {
     }
 
     // Process @define directives
-    let defineRegex = /@define\s+(\S+)\s+(.*)/;
+    const defineRegex = /@define\s+(\S+)\s+(.*)/;
     while (true) {
       // Find the next @define directive
-      let match = defineRegex.exec(output);
+      const match = defineRegex.exec(output);
       if (!match) {
         break;
       }
-      let defineMacro = match[1];
-      let replaceValue = match[2];
+      const defineMacro = match[1];
+      const replaceValue = match[2];
 
       // Remove the @define line
       output = output.replace(defineRegex, '');
@@ -474,8 +473,8 @@ export class GlslMinify {
           offset = nextOffset;
         } else {
           // Replace
-          let begin = output.substring(0, offset);
-          let end = output.substring(nextOffset);
+          const begin = output.substring(0, offset);
+          const end = output.substring(nextOffset);
           output = begin + replaceValue + end;
           offset += replaceValue.length;
         }
@@ -483,33 +482,33 @@ export class GlslMinify {
         // Advance the offset
         offset = output.indexOf(defineMacro, offset);
       }
-    } 
+    }
 
     // Process @const directives
-    let constRegex = /@const\s+(.*)/;
+    const constRegex = /@const\s+(.*)/;
     while (true) {
       // Find the next @const directive
-      let match = constRegex.exec(output);
+      const match = constRegex.exec(output);
       if (!match) {
         break;
       }
 
       // Parse the tokens
-      let parts = match[1].split(/\s/);
+      const parts = match[1].split(/\s/);
       if (parts.length !== 2) {
         throw new Error('@const directives require two parameters');
       }
-      let constType = parts[0];
-      let constName = parts[1];
+      const constType = parts[0];
+      const constName = parts[1];
 
       // Assign a substitution value
-      let substitutionValue = this.assignSubstitionValue(constName, constType);
+      const substitutionValue = this.assignSubstitionValue(constName, constType);
 
       // Replace the directive with a constant declaration
-      let newCode = 'const ' + constType + ' ' + constName + '=' + substitutionValue + ';';
+      const newCode = `const ${constType} ${constName}=${substitutionValue};`;
       output = output.replace(constRegex, newCode);
     }
-    
+
     return output;
   }
 
@@ -546,16 +545,16 @@ export class GlslMinify {
     //  2) One or more operators (non-alphanumeric, non-dot)
     //  3) A dot operator
     //  4) GLSL preprocessor directive beginning with #
-    let tokenRegex = /[\w$]+|[^\s\w#.]+|\.|#.*/g;
+    const tokenRegex = /[\w$]+|[^\s\w#.]+|\.|#.*/g;
 
     // Minifying requires a simple state machine the lookbacks to the previous two tokens
-    let match: string[]
+    let match: string[];
     let prevToken: string;
     let prevType = TokenType.ttNone;
     let prevPrevType = TokenType.ttNone;
     while ((match = tokenRegex.exec(content))) {
-      let token = match[0];
-      let type = GlslMinify.getTokenType(token);
+      const token = match[0];
+      const type = GlslMinify.getTokenType(token);
 
       switch (type) {
         case TokenType.ttPreprocessor: {
@@ -565,13 +564,13 @@ export class GlslMinify {
             }
 
             // Special case for #define: we want to minify the value being defined
-            let defineRegex = /#define\s(\w+)\s(.*)/;
-            let subMatch = defineRegex.exec(token);
+            const defineRegex = /#define\s(\w+)\s(.*)/;
+            const subMatch = defineRegex.exec(token);
             if (subMatch) {
               if (this.options.preserveDefines) {
                 this.tokens.reserveKeywords([subMatch[1]]);
               }
-              let minToken = this.tokens.minifyToken(subMatch[1]);
+              const minToken = this.tokens.minifyToken(subMatch[1]);
               output += '#define ' + minToken + ' ' + subMatch[2] + '\n';
               break;
             }
@@ -646,12 +645,12 @@ export class GlslMinify {
   }
 
   public executeAndStringify(content: string): Promise<string> {
-    let input: GlslFile = { contents: content };
+    const input: GlslFile = { contents: content };
     return this.executeFileAndStringify(input);
   }
 
   public async executeFileAndStringify(input: GlslFile): Promise<string> {
-    let program = await this.executeFile(input);
+    const program = await this.executeFile(input);
 
     switch (this.options.output) {
       case 'sourceOnly':
@@ -671,8 +670,7 @@ export class GlslMinify {
     if (Array.isArray(obj)) {
       let output = '[';
       let isFirst = true;
-      for (let n = 0; n < obj.length; n++) {
-        let value = obj[n];
+      for (const value of obj) {
         if (!isFirst) {
           output += ',';
         }
@@ -684,8 +682,8 @@ export class GlslMinify {
     } else if (typeof(obj) === 'object') {
       let output = '{';
       let isFirst = true;
-      for (let prop in obj) {
-        let value = obj[prop];
+      for (const prop in obj) {
+        const value = obj[prop];
         if (!isFirst) {
           output += ',';
         }
