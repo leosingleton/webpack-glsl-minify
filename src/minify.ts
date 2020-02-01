@@ -658,7 +658,7 @@ export class GlslMinify {
         return program.sourceCode;
 
       case 'source':
-        return 'modules.exports = ' + GlslMinify.stringify(program.sourceCode);
+        return 'module.exports = ' + GlslMinify.stringify(program.sourceCode);
 
       case 'object':
       default:
