@@ -26,7 +26,7 @@ export function webpackReadFile(loader: LoaderContext, filename: string, directo
       readFile(path, 'utf-8', (err, data) => {
         if (!err) {
           // Success
-          resolve({ path: path, contents: data });
+          resolve({ path, contents: data });
         } else {
           reject(err);
         }
@@ -36,14 +36,14 @@ export function webpackReadFile(loader: LoaderContext, filename: string, directo
 }
 
 export async function webpackLoader(content: string): Promise<void> {
-  let loader = this as LoaderContext;
-  let callback = loader.async();
-  let options = getOptions(loader) as GlslMinifyOptions;
+  const loader = this as LoaderContext;
+  const callback = loader.async();
+  const options = getOptions(loader) as GlslMinifyOptions;
 
   try {
-    let glsl = new GlslMinify(options, (filename, directory) => webpackReadFile(loader, filename, directory),
+    const glsl = new GlslMinify(options, (filename, directory) => webpackReadFile(loader, filename, directory),
       nodeDirname);
-    let code = await glsl.executeAndStringify(content);
+    const code = await glsl.executeAndStringify(content);
 
     callback(null, code);
   } catch (err) {

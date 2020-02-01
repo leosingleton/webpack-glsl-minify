@@ -1,0 +1,99 @@
+{
+  "parser": "@typescript-eslint/parser",
+  "parserOptions": {
+    "ecmaVersion": 6,
+    "project": ["./tsconfig.json", "./tsconfig.eslint.json"],
+    "sourceType": "module"
+  },
+  "env": {
+    "browser": true,
+    "node": true,
+    "es6": true
+  },
+  "plugins": [
+    "@typescript-eslint", "jsdoc", "import"
+  ],
+  "extends": [
+    "eslint:recommended",
+    "plugin:@typescript-eslint/eslint-recommended"
+  ],
+  "rules": {
+    "@typescript-eslint/array-type": "error",
+    "@typescript-eslint/consistent-type-definitions": ["error", "interface"],
+    "@typescript-eslint/no-floating-promises": "error",
+
+    "no-unused-vars": "off",
+    "@typescript-eslint/no-unused-vars": ["error", { "argsIgnorePattern": "^_" }],
+
+    "@typescript-eslint/prefer-for-of": "error",
+    "@typescript-eslint/prefer-function-type": "error",
+
+    "quotes": "off",
+    "@typescript-eslint/quotes": ["error", "single", { "avoidEscape": true, "allowTemplateLiterals": true }],
+
+    "semi": "off",
+    "@typescript-eslint/semi": "error",
+
+    "@typescript-eslint/unified-signatures": "error",
+
+    // eslint-plugin-import
+    "import/no-extraneous-dependencies": ["error", { "optionalDependencies": false }],
+
+    // eslint-plugin-jsdoc
+    "jsdoc/check-alignment": "error",
+
+    // eslint
+    "brace-style": ["error", "1tbs", { "allowSingleLine": true }],
+    "constructor-super": "error",
+    "curly": ["error", "multi-line"],
+    "dot-notation": "error",
+    "eqeqeq": "error",
+    "func-call-spacing": "error",
+    "keyword-spacing": "error",
+    "linebreak-style": "error",
+    "max-len": ["error", {
+      "code": 120,
+      "tabWidth": 2
+    }],
+    "new-parens": "error",
+    "no-caller": "error",
+    "no-constant-condition": ["error", { "checkLoops": false }],
+    "no-duplicate-imports": "error",
+    "no-eval": "error",
+    "no-extra-bind": "error",
+    "no-inner-declarations": "off",
+    "no-new-func": "error",
+    "no-new-wrappers": "error",
+    "no-return-await": "error",
+    "no-restricted-globals": ["error",
+      { "name": "setImmediate" },
+      { "name": "clearImmediate" }
+    ],
+    "no-template-curly-in-string": "error",
+    "no-throw-literal": "error",
+    "no-trailing-spaces": "error",
+    "no-undef-init": "error",
+    "no-unused-expressions": ["error", { "allowTernary": true }],
+    "no-var": "error",
+    "object-shorthand": "error",
+    "prefer-const": "error",
+    "prefer-object-spread": "error",
+    "quote-props": ["error", "consistent-as-needed"],
+    "space-before-blocks": "error",
+    "space-before-function-paren": ["error", {
+      "anonymous": "never",
+      "named": "never",
+      "asyncArrow": "always"
+    }],
+    "space-in-parens": "error",
+    "unicode-bom": ["error", "never"]
+  },
+  "overrides": [
+    {
+      "files": ["*.ts", "*.tsx"],
+      "rules": {
+        "@typescript-eslint/explicit-member-accessibility": "error"
+      }
+    }
+  ]
+}

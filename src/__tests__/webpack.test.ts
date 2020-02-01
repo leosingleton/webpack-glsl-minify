@@ -6,7 +6,7 @@ import * as path from 'path';
 
 async function runWebpack(configFile: string): Promise<string> {
   // Find test directory
-  let workingDir = path.resolve(__dirname, '../../tests/webpack');
+  const workingDir = path.resolve(__dirname, '../../tests/webpack');
   if (!(await fsAsync.exists(workingDir))) {
     throw new Error(`Failed to find test directory: ${workingDir}`);
   }
@@ -15,19 +15,19 @@ async function runWebpack(configFile: string): Promise<string> {
   await fsAsync.exec(`npx webpack --mode=production --config=${configFile}`, workingDir);
 
   // Run the output JavaScript file in NodeJS to ensure it is valid
-  let node = process.argv0;
-  let outputJS = path.resolve(workingDir, 'build/index.js');
+  const node = process.argv0;
+  const outputJS = path.resolve(workingDir, 'build/index.js');
   await fsAsync.exec(`${node} ${outputJS}`, workingDir);
 
   // Read the output file produced by Webpack and return it
-  let outputFile = path.resolve(workingDir, 'build/index.js');
-  let data = await fsAsync.readFile(outputFile, 'utf-8');
+  const outputFile = path.resolve(workingDir, 'build/index.js');
+  const data = await fsAsync.readFile(outputFile, 'utf-8');
   return data;
 }
 
 describe('Webpack Loader', () => {
   it('Executes with default options', async () => {
-    let output = await runWebpack('webpack.test1.js');
+    const output = await runWebpack('webpack.test1.js');
     expect(output).toContain('gl_FragColor=vec4');
     expect(output.indexOf('u_cb;')).toEqual(-1);            // Uniforms are minified by default
     expect(output.indexOf('mat3 transform')).toEqual(-1);   // Variables are minified by default
@@ -35,21 +35,21 @@ describe('Webpack Loader', () => {
   });
 
   it('Executes with mangling disabled', async () => {
-    let output = await runWebpack('webpack.test2.js');
+    const output = await runWebpack('webpack.test2.js');
     expect(output).toContain('gl_FragColor=vec4');
     expect(output).toContain('u_cb;');
     expect(output).toContain('mat3 transform');
   });
 
   it('Executes with output = source', async () => {
-    let output = await runWebpack('webpack.test3.js');
+    const output = await runWebpack('webpack.test3.js');
     expect(output).toContain('gl_FragColor=vec4');
     expect(output).toContain('u_cb;');                      // Uniform mangling is disables
     expect(output.indexOf('mat3 transform')).toEqual(-1);   // Variables are still minified
   });
 
   it('Executes with specific nomangle keywords', async () => {
-    let output = await runWebpack('webpack.test4.js');
+    const output = await runWebpack('webpack.test4.js');
     expect(output).toContain('gl_FragColor=vec4');
     expect(output.indexOf('u_cb;')).toEqual(-1);            // Uniforms are minified by default
     expect(output).toContain('u_cr;');                      // u_cr is in the nomangle list
@@ -58,7 +58,7 @@ describe('Webpack Loader', () => {
   });
 
   it('Strips #version directives', async () => {
-    let output = await runWebpack('webpack.test5.js');
+    const output = await runWebpack('webpack.test5.js');
     expect(output).toContain('gl_FragColor=vec4');
     expect(output.indexOf('u_cb;')).toEqual(-1);            // Uniforms are minified by default
     expect(output.indexOf('mat3 transform')).toEqual(-1);   // Variables are minified by default
