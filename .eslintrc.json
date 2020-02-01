@@ -62,6 +62,7 @@
     "no-duplicate-imports": "error",
     "no-eval": "error",
     "no-extra-bind": "error",
+    "no-inner-declarations": "off",
     "no-new-func": "error",
     "no-new-wrappers": "error",
     "no-return-await": "error",
@@ -87,5 +88,13 @@
     }],
     "space-in-parens": "error",
     "unicode-bom": ["error", "never"]
-  }
+  },
+  "overrides": [
+    {
+      "files": ["*.ts", "*.tsx"],
+      "rules": {
+        "@typescript-eslint/explicit-member-accessibility": "error"
+      }
+    }
+  ]
 }

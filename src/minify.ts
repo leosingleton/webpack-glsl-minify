@@ -125,7 +125,7 @@ const glslReservedKeywords = [
  * Helper class to minify tokens and track reserved ones
  */
 export class TokenMap {
-  constructor() {
+  public constructor() {
     // GLSL has many reserved keywords. In order to not minify them, we add them to the token map now.
     this.reserveKeywords(glslReservedKeywords);
   }
@@ -315,7 +315,7 @@ export class GlslMinify {
    *    package: nodeDirname() for NodeJS and Webpack and nullDirname() for browsers and other environments that don't
    *    support reading files from the local disk.
    */
-  constructor(options?: GlslMinifyOptions, readFile = nullReadFile, dirname = nullDirname) {
+  public constructor(options?: GlslMinifyOptions, readFile = nullReadFile, dirname = nullDirname) {
     // If output type is not object, disable mangling as we have no way of returning the map of the mangled names of
     // uniforms.
     options = options || {};
