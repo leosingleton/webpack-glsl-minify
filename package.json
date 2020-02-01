@@ -21,7 +21,6 @@
     "@types/webpack": "latest",
     "@types/yargs": "latest",
     "@typescript-eslint/eslint-plugin": "latest",
-    "@typescript-eslint/experimental-utils": "latest",
     "@typescript-eslint/parser": "latest",
     "eslint": "latest",
     "eslint-formatter-autolinkable-stylish": "latest",
