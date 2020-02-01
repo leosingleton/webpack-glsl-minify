@@ -52,6 +52,10 @@
     "func-call-spacing": "error",
     "keyword-spacing": "error",
     "linebreak-style": "error",
+    "max-len": ["error", {
+      "code": 120,
+      "tabWidth": 2
+    }],
     "new-parens": "error",
     "no-caller": "error",
     "no-constant-condition": ["error", { "checkLoops": false }],
