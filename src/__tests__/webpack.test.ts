@@ -14,6 +14,11 @@ async function runWebpack(configFile: string): Promise<string> {
   // Launch Webpack
   await fsAsync.exec(`npx webpack --mode=production --config=${configFile}`, workingDir);
 
+  // Run the output JavaScript file in NodeJS to ensure it is valid
+  let node = process.argv0;
+  let outputJS = path.resolve(workingDir, 'build/index.js');
+  await fsAsync.exec(`${node} ${outputJS}`, workingDir);
+
   // Read the output file produced by Webpack and return it
   let outputFile = path.resolve(workingDir, 'build/index.js');
   let data = await fsAsync.readFile(outputFile, 'utf-8');
