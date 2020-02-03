@@ -80,7 +80,9 @@ const glsl = new GlslMinify({
 
 // Process input files
 if (Array.isArray(argv.files)) {
-  argv.files.forEach(pattern => processGlob(pattern));
+  for (const pattern of argv.files) {
+    processGlob(pattern);
+  }
 } else {
   processGlob(argv.files);
 }
@@ -92,12 +94,12 @@ function processGlob(pattern: string): void {
       process.exit(-1);
     }
 
-    matches.forEach(file => {
+    for (const file of matches) {
       processFile(file).then(() => {}, err => {
         console.log(err);
         process.exit(-1);
       });
-    });
+    }
   });
 }
 
