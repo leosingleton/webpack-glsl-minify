@@ -11,7 +11,7 @@
     "es6": true
   },
   "plugins": [
-    "@typescript-eslint", "jsdoc", "import"
+    "@typescript-eslint", "github", "jsdoc", "import"
   ],
   "extends": [
     "eslint:recommended",
@@ -21,6 +21,7 @@
     "@typescript-eslint/array-type": "error",
     "@typescript-eslint/consistent-type-definitions": ["error", "interface"],
     "@typescript-eslint/no-floating-promises": "error",
+    "@typescript-eslint/no-for-in-array": "error",
 
     "no-unused-vars": "off",
     "@typescript-eslint/no-unused-vars": ["error", { "argsIgnorePattern": "^_" }],
@@ -35,6 +36,9 @@
     "@typescript-eslint/semi": "error",
 
     "@typescript-eslint/unified-signatures": "error",
+
+    // eslint-plugin-github
+    "github/array-foreach": "error",
 
     // eslint-plugin-import
     "import/no-extraneous-dependencies": ["error", { "optionalDependencies": false }],
