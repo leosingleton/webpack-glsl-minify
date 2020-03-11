@@ -125,7 +125,7 @@ const glslReservedKeywords = [
  * Helper class to minify tokens and track reserved ones
  */
 export class TokenMap {
-  public constructor() {
+  public constructor(private options: GlslMinifyOptions) {
     // GLSL has many reserved keywords. In order to not minify them, we add them to the token map now.
     this.reserveKeywords(glslReservedKeywords);
   }
@@ -189,7 +189,7 @@ export class TokenMap {
     // Mangle the name. Special-case any tokens starting with "gl_". They should never be minified. Likewise, never
     // mangle substitution values, which start and end with "$".
     let min = name;
-    if (!name.startsWith('gl_') && name.indexOf('$') === -1) {
+    if (!this.options.disableMangle && !name.startsWith('gl_') && name.indexOf('$') === -1) {
       min = TokenMap.getMinifiedName(this.minifiedTokenCount++);
     }
 
@@ -286,6 +286,9 @@ export interface GlslMinifyOptions {
   /** Disables name mangling of variables. Default = false. */
   preserveVariables?: boolean;
 
+  /** Disables all mangling. Default = false. */
+  disableMangle?:boolean;
+
   /** Additional variable names or keywords to explicitly disable name mangling */
   nomangle?: string[];
 }
@@ -305,6 +308,10 @@ export type GlslOutputFormat = 'object' | 'source' | 'sourceOnly';
 
 /** GLSL shader minifier */
 export class GlslMinify {
+
+    /** List of tokens minified by the parser */
+    private tokens: TokenMap;
+
   /**
    * Constructor
    * @param options Minifier options. See GlslMinifyOptions for details.
@@ -326,10 +333,9 @@ export class GlslMinify {
     this.options = options;
     this.readFile = readFile;
     this.dirname = dirname;
+    this.tokens = new TokenMap(options);
   }
 
-  /** List of tokens minified by the parser */
-  private tokens = new TokenMap();
 
   public execute(content: string): Promise<GlslShader> {
     const input: GlslFile = { contents: content };
