@@ -585,8 +585,9 @@ export class GlslMinify {
             if (token === '0' && prevType === TokenType.ttDot) {
               break;
             }
+
             // Special case if the numeric token follows a "return" token and it needs a space between (e.g "return 1")
-            if(prevToken === 'return'){
+            if (prevToken === 'return') {
               output += ' ';
             }
           }
