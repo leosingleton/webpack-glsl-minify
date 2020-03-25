@@ -64,4 +64,12 @@ describe('Webpack Loader', () => {
     expect(output.indexOf('mat3 transform')).toEqual(-1);   // Variables are minified by default
     expect(output.indexOf('#version')).toEqual(-1);         // #version directives are stripped in this test case
   });
+
+  it('Executes with preserveAll', async () => {
+    const output = await runWebpack('webpack.test6.js');
+    expect(output).toContain('gl_FragColor=vec4');
+    expect(output).toContain('u_cb;');
+    expect(output).toContain('mat3 transform');
+    expect(output).toContain('YCbCr2RGB(');                 // Function names are not mangled with preserveAll
+  });
 });
