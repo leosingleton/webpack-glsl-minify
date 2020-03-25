@@ -1,6 +1,6 @@
 {
   "name": "webpack-glsl-minify",
-  "version": "1.2.1",
+  "version": "1.3.0",
   "author": "Leo C. Singleton IV <leo@leosingleton.com>",
   "description": "GLSL Loader, Preprocessor, and Minifier for Webpack",
   "homepage": "https://github.com/leosingleton/webpack-glsl-minify",
@@ -12,26 +12,26 @@
   },
   "dependencies": {
     "glob": "latest",
-    "yargs": "latest"
+    "yargs": "^15.3.1"
   },
   "devDependencies": {
     "@types/glob": "latest",
     "@types/jasmine-node": "latest",
     "@types/loader-utils": "latest",
-    "@types/webpack": "latest",
-    "@types/yargs": "latest",
-    "@typescript-eslint/eslint-plugin": "latest",
-    "@typescript-eslint/parser": "latest",
+    "@types/webpack": "^4.41.8",
+    "@types/yargs": "^15.0.4",
+    "@typescript-eslint/eslint-plugin": "^2.25.0",
+    "@typescript-eslint/parser": "^2.25.0",
     "eslint": "latest",
     "eslint-plugin-github": "latest",
     "eslint-plugin-import": "latest",
-    "eslint-plugin-jsdoc": "latest",
+    "eslint-plugin-jsdoc": "^22.1.0",
     "jasmine": "latest",
     "jasmine-xml-reporter": "latest",
-    "loader-utils": "latest",
-    "typescript": "latest",
-    "webpack": "latest",
-    "webpack-cli": "latest"
+    "loader-utils": "^2.0.0",
+    "typescript": "^3.8.3",
+    "webpack": "^4.42.1",
+    "webpack-cli": "^3.3.11"
   },
   "scripts": {
     "build": "npx tsc",
