@@ -18,6 +18,7 @@ interface Arguments {
   preserveDefines?: boolean;
   preserveUniforms?: boolean;
   preserveVariables?: boolean;
+  preserveAll?: boolean;
   nomangle?: string[];
 }
 
@@ -58,6 +59,10 @@ const argv = yargs
     },
     preserveVariables: {
       describe: 'Disables name mangling of variables',
+      type: 'boolean'
+    },
+    preserveAll: {
+      describe: 'Disables all mangling',
       type: 'boolean'
     },
     nomangle: {

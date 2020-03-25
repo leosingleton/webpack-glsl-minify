@@ -189,7 +189,7 @@ export class TokenMap {
     // Mangle the name. Special-case any tokens starting with "gl_". They should never be minified. Likewise, never
     // mangle substitution values, which start and end with "$".
     let min = name;
-    if (!this.options.disableMangle && !name.startsWith('gl_') && name.indexOf('$') === -1) {
+    if (!this.options.preserveAll && !name.startsWith('gl_') && name.indexOf('$') === -1) {
       min = TokenMap.getMinifiedName(this.minifiedTokenCount++);
     }
 
@@ -287,7 +287,7 @@ export interface GlslMinifyOptions {
   preserveVariables?: boolean;
 
   /** Disables all mangling. Default = false. */
-  disableMangle?:boolean;
+  preserveAll?: boolean;
 
   /** Additional variable names or keywords to explicitly disable name mangling */
   nomangle?: string[];
@@ -309,8 +309,8 @@ export type GlslOutputFormat = 'object' | 'source' | 'sourceOnly';
 /** GLSL shader minifier */
 export class GlslMinify {
 
-    /** List of tokens minified by the parser */
-    private tokens: TokenMap;
+  /** List of tokens minified by the parser */
+  private tokens: TokenMap;
 
   /**
    * Constructor
