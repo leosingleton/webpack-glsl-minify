@@ -104,7 +104,7 @@ describe('GlslMinify', () => {
   });
 
   it('Allocates minified names', () => {
-    const map = new TokenMap();
+    const map = new TokenMap({});
     expect(map.minifyToken('token1')).toEqual('A');
     expect(map.minifyToken('token2')).toEqual('B');
     expect(map.minifyToken('token1')).toEqual('A');
