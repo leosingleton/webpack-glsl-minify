@@ -558,6 +558,7 @@ export class GlslMinify {
     let prevToken: string;
     let prevType = TokenType.ttNone;
     let prevPrevType = TokenType.ttNone;
+    let declarationType = TokenType.ttNone;
     while ((match = tokenRegex.exec(content))) {
       const token = match[0];
       const type = GlslMinify.getTokenType(token);
@@ -622,7 +623,9 @@ export class GlslMinify {
 
             // Try to minify the token
             let minToken: string;
-            if (prevPrevType === TokenType.ttUniform) {
+            if (prevPrevType === TokenType.ttUniform || (declarationType === TokenType.ttUniform && prevToken===',')) {
+              // Mark as uniform declaration
+              declarationType = TokenType.ttUniform;
               // This is a special case of a uniform declaration
               if (this.options.preserveUniforms) {
                 this.tokens.reserveKeywords([token]);
@@ -646,6 +649,10 @@ export class GlslMinify {
           }
       }
 
+      // Clear the declarionType when declaration part is at the end
+      if (token === ';') {
+        declarationType = TokenType.ttNone;
+      }
       // Advance to the next token
       prevPrevType = prevType;
       prevType = type;
