@@ -124,6 +124,14 @@ describe('GlslMinify', () => {
     expect(GlslMinifyInternal.getTokenType('varying')).toEqual(TokenType.ttVarying);
   });
 
+  it('Detects all valid number formats', () => {
+    expect(GlslMinifyInternal.getTokenType('176')).toEqual(TokenType.ttNumeric);    // Base 10
+    expect(GlslMinifyInternal.getTokenType('0176')).toEqual(TokenType.ttNumeric);   // Base 8
+    expect(GlslMinifyInternal.getTokenType('0x176')).toEqual(TokenType.ttNumeric);  // Base 16
+    expect(GlslMinifyInternal.getTokenType('176u')).toEqual(TokenType.ttNumeric);   // Unsigned Base 10
+    expect(GlslMinifyInternal.getTokenType('176U')).toEqual(TokenType.ttNumeric);   // Unsigned Base 10
+  });
+
   it('Minifies a vertex shader', async (done) => {
     const glsl = new GlslMinifyInternal({}, nodeReadFile, nodeDirname);
     const file = await glsl.readFile('tests/glsl/minify1.glsl');
