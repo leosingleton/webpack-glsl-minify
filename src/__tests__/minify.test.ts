@@ -182,4 +182,49 @@ describe('GlslMinify', () => {
     const expected = '{prop1:"hello",prop2:{vals:[0,1,2],num:1.23}}';
     expect(str).toEqual(expected);
   });
+
+  it('Supports multiple uniforms on a single line, comma-separated', async (done) => {
+    const glsl = new GlslMinifyInternal({}, nodeReadFile, nodeDirname);
+    const file = await glsl.readFile('tests/glsl/commas-uniforms.glsl');
+    const output = await glsl.executeFile(file);
+
+    // Uniforms are detected and minified
+    expect(output.uniforms.uRed.variableName).toEqual('A');
+    expect(output.uniforms.uRed.variableType).toEqual('float');
+    expect(output.uniforms.uGreen.variableName).toEqual('B');
+    expect(output.uniforms.uGreen.variableType).toEqual('float');
+    expect(output.uniforms.uBlue.variableName).toEqual('C');
+    expect(output.uniforms.uBlue.variableType).toEqual('float');
+
+    // Compare against the expected output
+    const expected = await glsl.readFile('tests/glsl/commas-uniforms.min.glsl');
+    expect(output.sourceCode).toEqual(trim(expected.contents));
+    done();
+  });
+
+  it('Supports multiple uniforms on a single line, comma-separated, with preserveUniforms', async (done) => {
+    const glsl = new GlslMinifyInternal({ preserveUniforms: true }, nodeReadFile, nodeDirname);
+    const file = await glsl.readFile('tests/glsl/commas-uniforms.glsl');
+    const output = await glsl.executeFile(file);
+
+    // Uniforms are not minified
+    expect(output.uniforms.uRed.variableName).toEqual('uRed');
+    expect(output.uniforms.uRed.variableType).toEqual('float');
+    expect(output.uniforms.uGreen.variableName).toEqual('uGreen');
+    expect(output.uniforms.uGreen.variableType).toEqual('float');
+    expect(output.uniforms.uBlue.variableName).toEqual('uBlue');
+    expect(output.uniforms.uBlue.variableType).toEqual('float');
+    done();
+  });
+
+  it('Supports multiple variables declared and initialized on a single line, comma-separated', async (done) => {
+    const glsl = new GlslMinifyInternal({}, nodeReadFile, nodeDirname);
+    const file = await glsl.readFile('tests/glsl/commas-variables.glsl');
+    const output = await glsl.executeFile(file);
+
+    // Compare against the expected output
+    const expected = await glsl.readFile('tests/glsl/commas-variables.min.glsl');
+    expect(output.sourceCode).toEqual(trim(expected.contents));
+    done();
+  });
 });
