@@ -150,6 +150,7 @@ This loader also supports the following loader-specific options:
 * `preserveDefines`: Default `false`. Disables name mangling of `#define`s.
 * `preserveUniforms`: Default `false`. Disables name mangling of uniforms.
 * `preserveVariables`: Default `false`. Disables name mangling of variables.
+* `preserveAll`: Default `false`. Disables all mangling.
 * `disableMangle`: Default `false`. Disables name mangling. This is useful for development purpose.
 * `nomangle`: Specifies an array of additional variable names or keywords to explicitly disable name mangling.
 
@@ -177,6 +178,7 @@ Options:
   --preserveDefines    Disables name mangling of #defines              [boolean]
   --preserveUniforms   Disables name mangling of uniforms              [boolean]
   --preserveVariables  Disables name mangling of variables             [boolean]
+  --preserveAll        Disables all mangling                           [boolean]
   --nomangle           Disables name mangling for a set of keywords      [array]
   --help               Show help                                       [boolean]
 ```
