@@ -1,0 +1,1 @@
+uniform float A,B,C;void main(){gl_FragColor=vec4(A,B,C,1.);}

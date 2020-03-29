@@ -235,8 +235,14 @@ export enum TokenType {
   /** The varying keyword */
   ttVarying,
 
-  /** An operator, including brackets and parentheses. (Note: dot is a special one below) */
+  /** The return keyword */
+  ttReturn,
+
+  /** An operator, including brackets and parentheses. (Note: dot and semicolons are special ones below) */
   ttOperator,
+
+  /** A semicolon */
+  ttSemicolon,
 
   /** The dot operator. This operator has special meaning in GLSL due to vector swizzle masks. */
   ttDot,
@@ -526,6 +532,10 @@ export class GlslMinify {
       return TokenType.ttUniform;
     } else if (token === 'varying') {
       return TokenType.ttVarying;
+    } else if (token === 'return') {
+      return TokenType.ttReturn;
+    } else if (token === ';') {
+      return TokenType.ttSemicolon;
     } else if (token === '.') {
       return TokenType.ttDot;
     } else if (token[0] === '#') {
@@ -555,7 +565,7 @@ export class GlslMinify {
 
     // Minifying requires a simple state machine the lookbacks to the previous two tokens
     let match: string[];
-    let prevToken: string;
+    let uniformType: string;
     let prevType = TokenType.ttNone;
     let prevPrevType = TokenType.ttNone;
     while ((match = tokenRegex.exec(content))) {
@@ -593,9 +603,15 @@ export class GlslMinify {
             }
 
             // Special case if the numeric token follows a "return" token and it needs a space between (e.g "return 1")
-            if (prevToken === 'return') {
+            if (prevType === TokenType.ttReturn) {
               output += ' ';
             }
+          }
+          // eslint-disable-next-line no-fallthrough
+
+        case TokenType.ttSemicolon: {
+            // A semicolon ends a uniform declaration
+            uniformType = undefined;
           }
           // eslint-disable-next-line no-fallthrough
 
@@ -608,11 +624,17 @@ export class GlslMinify {
         case TokenType.ttToken:
         case TokenType.ttAttribute:
         case TokenType.ttUniform:
-        case TokenType.ttVarying: {
+        case TokenType.ttVarying:
+        case TokenType.ttReturn: {
             // Special case: a token following a dot is a swizzle mask. Leave it as-is.
             if (prevType === TokenType.ttDot) {
               output += token;
               break;
+            }
+
+            // Store the token following the uniform keyword as it is the uniform type
+            if (prevType === TokenType.ttUniform) {
+              uniformType = token;
             }
 
             // For attribute and varying declarations, turn off minification.
@@ -622,12 +644,12 @@ export class GlslMinify {
 
             // Try to minify the token
             let minToken: string;
-            if (prevPrevType === TokenType.ttUniform) {
+            if (uniformType) {
               // This is a special case of a uniform declaration
               if (this.options.preserveUniforms) {
                 this.tokens.reserveKeywords([token]);
               }
-              minToken = this.tokens.minifyToken(token, prevToken);
+              minToken = this.tokens.minifyToken(token, uniformType);
             } else {
               // Normal token
               if (this.options.preserveVariables) {
@@ -636,9 +658,9 @@ export class GlslMinify {
               minToken = this.tokens.minifyToken(token);
             }
 
-            // When outputting, if the previous token was not an operator or newline, leave a space.
+            // When outputting, if the previous token was not an operator, semicolon, or newline, leave a space.
             if (prevType !== TokenType.ttOperator && prevType !== TokenType.ttPreprocessor &&
-                prevType !== TokenType.ttNone) {
+                prevType !== TokenType.ttSemicolon && prevType !== TokenType.ttNone) {
               output += ' ';
             }
             output += minToken;
@@ -649,7 +671,6 @@ export class GlslMinify {
       // Advance to the next token
       prevPrevType = prevType;
       prevType = type;
-      prevToken = token;
     }
 
     return output;
