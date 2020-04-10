@@ -1,1 +1,0 @@
-void main(){float A,B,C=0.5,D=1.;A=0.5,C=0.5;gl_FragColor=vec4(A,B,C,D);}

@@ -1,0 +1,18 @@
+{
+  "sourceCode": "uniform float A,B,C;void main(){gl_FragColor=vec4(A,B,C,1.);}",
+  "consts": {},
+  "uniforms": {
+    "uRed": {
+      "variableName": "A",
+      "variableType": "float"
+    },
+    "uGreen": {
+      "variableName": "B",
+      "variableType": "float"
+    },
+    "uBlue": {
+      "variableName": "C",
+      "variableType": "float"
+    }
+  }
+}

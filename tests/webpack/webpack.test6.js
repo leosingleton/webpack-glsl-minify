@@ -19,7 +19,7 @@ module.exports = {
     extensions: [ '.glsl' ]
   },
   output: {
-    path: path.resolve(__dirname, 'build'),
+    path: path.resolve(__dirname, '../../build/__tests__/webpack'),
     filename: 'index.js'
   }
 };

@@ -1,0 +1,10 @@
+{
+  "sourceCode": "const float A=$0$;void main(){gl_FragColor=vec4(vec3(A),1.);}",
+  "consts": {
+    "color": {
+      "variableName": "$0$",
+      "variableType": "float"
+    }
+  },
+  "uniforms": {}
+}
