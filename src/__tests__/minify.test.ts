@@ -235,4 +235,15 @@ describe('GlslMinify', () => {
     expect(output.sourceCode).toEqual(trim(expected.contents));
     done();
   });
+
+  it('Handles precision specifiers', async (done) => {
+    const glsl = new GlslMinifyInternal({}, nodeReadFile, nodeDirname);
+    const file = await glsl.readFile('tests/glsl/precision.glsl');
+    const output = await glsl.executeFile(file);
+
+    // Compare against the expected output
+    const expected = await glsl.readFile('tests/glsl/precision.min.glsl');
+    expect(output.sourceCode).toEqual(trim(expected.contents));
+    done();
+  });
 });

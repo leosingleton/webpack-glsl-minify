@@ -235,6 +235,9 @@ export enum TokenType {
   /** The varying keyword */
   ttVarying,
 
+  /** Precision specifier: highp, mediump, or lowp  */
+  ttPrecision,
+
   /** The return keyword */
   ttReturn,
 
@@ -532,6 +535,8 @@ export class GlslMinify {
       return TokenType.ttUniform;
     } else if (token === 'varying') {
       return TokenType.ttVarying;
+    } else if (token === 'highp' || token === 'mediump' || token === 'lowp') {
+      return TokenType.ttPrecision;
     } else if (token === 'return') {
       return TokenType.ttReturn;
     } else if (token === ';') {
@@ -665,6 +670,13 @@ export class GlslMinify {
             }
             output += minToken;
             break;
+          }
+
+        case TokenType.ttPrecision: {
+            // Special case for precision specifiers: we output the keyword, but 'continue' instead of 'break' as to
+            // not update the prevType and prevPrevType variables below.
+            output += ' ' + token;
+            continue;
           }
       }
 

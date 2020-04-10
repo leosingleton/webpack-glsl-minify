@@ -1,0 +1,1 @@
+precision mediump float;uniform lowp float A;varying highp vec2 vTexCoord;
