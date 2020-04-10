@@ -7,7 +7,7 @@ import * as path from 'path';
 async function runCli(inputFile: string, params: string): Promise<string> {
   // Launch CLI app
   const workingDir = path.resolve(__dirname, '../..'); // git repo root
-  const outDir = 'tests/cli/build';
+  const outDir = 'build/__tests__/cli';
   const cmdline = `bin/webpack-glsl-minify ${inputFile} ${params} --outDir ${outDir}`;
   await fsAsync.exec(cmdline, workingDir);
 
