@@ -1,7 +1,8 @@
 // src/__tests__/minify.test.ts
 // Copyright 2018-2020 Leo C. Singleton IV <leo@leosingleton.com>
 
-import { GlslMinify, GlslMinifyOptions, GlslFile, TokenMap, TokenType, ReadFileImpl, DirnameImpl } from '../minify';
+import { GlslFile, GlslMinify, GlslMinifyOptions, GlslVariableMap, TokenMap, TokenType, ReadFileImpl,
+  DirnameImpl } from '../minify';
 import { nodeReadFile, nodeDirname } from '../node';
 
 /**
@@ -43,6 +44,11 @@ class GlslMinifyInternal extends GlslMinify {
   }
 
   public readFile: ReadFileImpl;
+}
+
+/** Counts the number of properties in the `consts` or `uniforms` output of the minifier */
+function countProperties(map: GlslVariableMap): number {
+  return Object.getOwnPropertyNames(map).length;
 }
 
 describe('GlslMinify', () => {
@@ -142,6 +148,8 @@ describe('GlslMinify', () => {
     expect(output.sourceCode).toEqual(trim(expected.contents));
     expect(output.uniforms.u_flipY.variableName).toEqual('A');
     expect(output.uniforms.u_flipY.variableType).toEqual('float');
+    expect(countProperties(output.consts)).toEqual(0);
+    expect(countProperties(output.uniforms)).toEqual(1);
     done();
   });
 
@@ -159,6 +167,8 @@ describe('GlslMinify', () => {
     expect(output.uniforms.u_cb.variableType).toEqual('sampler2D');
     expect(output.uniforms.u_cr.variableName).toEqual('C');
     expect(output.uniforms.u_cr.variableType).toEqual('sampler2D');
+    expect(countProperties(output.consts)).toEqual(0);
+    expect(countProperties(output.uniforms)).toEqual(3);
     done();
   });
 
@@ -174,6 +184,8 @@ describe('GlslMinify', () => {
     expect(output.uniforms.iResolution.variableType).toEqual('vec3');
     expect(output.uniforms.iChannel0.variableName).toEqual('B');
     expect(output.uniforms.iChannel0.variableType).toEqual('sampler2D');
+    expect(countProperties(output.consts)).toEqual(0);
+    expect(countProperties(output.uniforms)).toEqual(2);
     done();
   });
 
@@ -191,6 +203,18 @@ describe('GlslMinify', () => {
     expect(str).toEqual(expected);
   });
 
+  it('Parses and outputs consts', async (done) => {
+    const glsl = new GlslMinifyInternal({}, nodeReadFile, nodeDirname);
+    const file = await glsl.readFile('tests/glsl/const.glsl');
+    const output = await glsl.executeFile(file);
+
+    expect(output.consts.color.variableName).toEqual('$0$');
+    expect(output.consts.color.variableType).toEqual('float');
+    expect(countProperties(output.consts)).toEqual(1);
+    expect(countProperties(output.uniforms)).toEqual(0);
+    done();
+  });
+
   it('Supports multiple uniforms on a single line, comma-separated', async (done) => {
     const glsl = new GlslMinifyInternal({}, nodeReadFile, nodeDirname);
     const file = await glsl.readFile('tests/glsl/commas-uniforms.glsl');
@@ -203,6 +227,8 @@ describe('GlslMinify', () => {
     expect(output.uniforms.uGreen.variableType).toEqual('float');
     expect(output.uniforms.uBlue.variableName).toEqual('C');
     expect(output.uniforms.uBlue.variableType).toEqual('float');
+    expect(countProperties(output.consts)).toEqual(0);
+    expect(countProperties(output.uniforms)).toEqual(3);
 
     // Compare against the expected output
     const expected = await glsl.readFile('tests/glsl/commas-uniforms.min.glsl');
@@ -222,6 +248,8 @@ describe('GlslMinify', () => {
     expect(output.uniforms.uGreen.variableType).toEqual('float');
     expect(output.uniforms.uBlue.variableName).toEqual('uBlue');
     expect(output.uniforms.uBlue.variableType).toEqual('float');
+    expect(countProperties(output.consts)).toEqual(0);
+    expect(countProperties(output.uniforms)).toEqual(3);
     done();
   });
 
