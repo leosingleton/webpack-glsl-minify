@@ -1,0 +1,10 @@
+{
+  "sourceCode": "uniform vec2 A;void main(){}",
+  "consts": {},
+  "uniforms": {
+    "myUniform": {
+      "variableName": "A",
+      "variableType": "float"
+    }
+  }
+}
