@@ -1,50 +1,8 @@
 // src/__tests__/minify.test.ts
 // Copyright 2018-2020 Leo C. Singleton IV <leo@leosingleton.com>
 
-import { GlslFile, GlslMinify, GlslMinifyOptions, GlslVariableMap, TokenMap, TokenType, ReadFileImpl,
-  DirnameImpl } from '../minify';
-import { nodeReadFile, nodeDirname } from '../node';
-
-/**
- * Removes whitespace and empty lines from a string
- */
-function trim(content: string): string {
-  const lines = content.split('\n');
-
-  let output = '';
-  for (const line of lines) {
-    if (line.length > 0) {
-      if (output !== '') {
-        output += '\n';
-      }
-      output += line;
-    }
-  }
-
-  return output;
-}
-
-/** Wrapper around GlslMinify to expose protected members to unit tests */
-class GlslMinifyInternal extends GlslMinify {
-  public constructor(options: GlslMinifyOptions, readFile: ReadFileImpl, dirname: DirnameImpl) {
-    super(options, readFile, dirname);
-    this.readFile = readFile;
-  }
-
-  public preprocessPass1(content: GlslFile): Promise<string> {
-    return super.preprocessPass1(content);
-  }
-
-  public preprocessPass2(content: string): string {
-    return super.preprocessPass2(content);
-  }
-
-  public static getTokenType(token: string): TokenType {
-    return super.getTokenType(token);
-  }
-
-  public readFile: ReadFileImpl;
-}
+import { GlslMinifyInternal } from './internals';
+import { GlslMinify, GlslVariableMap, TokenMap, TokenType } from '../minify';
 
 /** Counts the number of properties in the `consts` or `uniforms` output of the minifier */
 function countProperties(map: GlslVariableMap): number {
@@ -52,51 +10,47 @@ function countProperties(map: GlslVariableMap): number {
 }
 
 describe('GlslMinify', () => {
-  it('Reads files', async (done) => {
-    const glsl = new GlslMinifyInternal({}, nodeReadFile, nodeDirname);
+  it('Reads files', async () => {
+    const glsl = new GlslMinifyInternal();
     const file = await glsl.readFile('tests/glsl/hello.glsl');
     expect(file.contents).toEqual('// Hello World!');
-    done();
   });
 
   it('Preprocessor removes comments', async (done) => {
-    const glsl = new GlslMinifyInternal({}, nodeReadFile, nodeDirname);
+    const glsl = new GlslMinifyInternal();
     const file = await glsl.readFile('tests/glsl/comments.glsl');
     const output = await glsl.preprocessPass1(file);
     expect(output).toEqual('void main() {}\n');
     done();
   });
 
-  it('Preprocessor handles @include directives', async (done) => {
-    const glsl = new GlslMinifyInternal({}, nodeReadFile, nodeDirname);
+  it('Preprocessor handles @include directives', async () => {
+    const glsl = new GlslMinifyInternal();
     const file = await glsl.readFile('tests/glsl/include.glsl');
     const output = await glsl.preprocessPass1(file);
 
     // Expect an additional newline for the // comment after the @include
     expect(output).toEqual('void main() {}\n\n');
-    done();
   });
 
-  it('Preprocessor handles @define directives', async (done) => {
-    const glsl = new GlslMinifyInternal({}, nodeReadFile, nodeDirname);
+  it('Preprocessor handles @define directives', async () => {
+    const glsl = new GlslMinifyInternal();
     const file = await glsl.readFile('tests/glsl/define.glsl');
-    const output = trim(glsl.preprocessPass2(file.contents));
+    const output = GlslMinifyInternal.trim(glsl.preprocessPass2(file.contents));
 
     const expected = 'void main() { gl_FragColor = vec4(1.0, 1.0, 1.0, 1.0); }';
     expect(output.length).toEqual(expected.length);
     expect(output).toEqual(expected);
-    done();
   });
 
-  it('Preprocessor handles @const directives', async (done) => {
-    const glsl = new GlslMinifyInternal({}, nodeReadFile, nodeDirname);
+  it('Preprocessor handles @const directives', async () => {
+    const glsl = new GlslMinifyInternal();
     const file = await glsl.readFile('tests/glsl/const.glsl');
-    const output = trim(glsl.preprocessPass2(file.contents));
+    const output = GlslMinifyInternal.trim(glsl.preprocessPass2(file.contents));
 
     const expected = 'const float color=$0$;\nvoid main() { gl_FragColor = vec4(vec3(color), 1.0); }';
     expect(output.length).toEqual(expected.length);
     expect(output).toEqual(expected);
-    done();
   });
 
   it('Calculates unique minified names', () => {
@@ -138,29 +92,28 @@ describe('GlslMinify', () => {
     expect(GlslMinifyInternal.getTokenType('176U')).toEqual(TokenType.ttNumeric);   // Unsigned Base 10
   });
 
-  it('Minifies a vertex shader', async (done) => {
-    const glsl = new GlslMinifyInternal({}, nodeReadFile, nodeDirname);
+  it('Minifies a vertex shader', async () => {
+    const glsl = new GlslMinifyInternal();
     const file = await glsl.readFile('tests/glsl/minify1.glsl');
     const output = await glsl.executeFile(file);
 
     // Read the expected output
-    const expected = await glsl.readFile('tests/glsl/minify1.min.glsl');
-    expect(output.sourceCode).toEqual(trim(expected.contents));
+    const expected = await glsl.readAndTrimFile('tests/glsl/minify1.min.glsl');
+    expect(output.sourceCode).toEqual(expected);
     expect(output.uniforms.u_flipY.variableName).toEqual('A');
     expect(output.uniforms.u_flipY.variableType).toEqual('float');
     expect(countProperties(output.consts)).toEqual(0);
     expect(countProperties(output.uniforms)).toEqual(1);
-    done();
   });
 
-  it('Minifies a fragment shader', async (done) => {
-    const glsl = new GlslMinifyInternal({}, nodeReadFile, nodeDirname);
+  it('Minifies a fragment shader', async () => {
+    const glsl = new GlslMinifyInternal();
     const file = await glsl.readFile('tests/glsl/minify2.glsl');
     const output = await glsl.executeFile(file);
 
     // Read the expected output
-    const expected = await glsl.readFile('tests/glsl/minify2.min.glsl');
-    expect(output.sourceCode).toEqual(trim(expected.contents));
+    const expected = await glsl.readAndTrimFile('tests/glsl/minify2.min.glsl');
+    expect(output.sourceCode).toEqual(expected);
     expect(output.uniforms.u_y.variableName).toEqual('A');
     expect(output.uniforms.u_y.variableType).toEqual('sampler2D');
     expect(output.uniforms.u_cb.variableName).toEqual('B');
@@ -169,24 +122,22 @@ describe('GlslMinify', () => {
     expect(output.uniforms.u_cr.variableType).toEqual('sampler2D');
     expect(countProperties(output.consts)).toEqual(0);
     expect(countProperties(output.uniforms)).toEqual(3);
-    done();
   });
 
-  it('Minifies a complex fragment shader', async (done) => {
-    const glsl = new GlslMinifyInternal({}, nodeReadFile, nodeDirname);
+  it('Minifies a complex fragment shader', async () => {
+    const glsl = new GlslMinifyInternal();
     const file = await glsl.readFile('tests/glsl/minify3.glsl');
     const output = await glsl.executeFile(file);
 
     // Read the expected output
-    const expected = await glsl.readFile('tests/glsl/minify3.min.glsl');
-    expect(output.sourceCode).toEqual(trim(expected.contents));
+    const expected = await glsl.readAndTrimFile('tests/glsl/minify3.min.glsl');
+    expect(output.sourceCode).toEqual(expected);
     expect(output.uniforms.iResolution.variableName).toEqual('A');
     expect(output.uniforms.iResolution.variableType).toEqual('vec3');
     expect(output.uniforms.iChannel0.variableName).toEqual('B');
     expect(output.uniforms.iChannel0.variableType).toEqual('sampler2D');
     expect(countProperties(output.consts)).toEqual(0);
     expect(countProperties(output.uniforms)).toEqual(2);
-    done();
   });
 
   it('Stringifies an object', () => {
@@ -203,8 +154,8 @@ describe('GlslMinify', () => {
     expect(str).toEqual(expected);
   });
 
-  it('Parses and outputs consts', async (done) => {
-    const glsl = new GlslMinifyInternal({}, nodeReadFile, nodeDirname);
+  it('Parses and outputs consts', async () => {
+    const glsl = new GlslMinifyInternal();
     const file = await glsl.readFile('tests/glsl/const.glsl');
     const output = await glsl.executeFile(file);
 
@@ -212,11 +163,10 @@ describe('GlslMinify', () => {
     expect(output.consts.color.variableType).toEqual('float');
     expect(countProperties(output.consts)).toEqual(1);
     expect(countProperties(output.uniforms)).toEqual(0);
-    done();
   });
 
-  it('Supports multiple uniforms on a single line, comma-separated', async (done) => {
-    const glsl = new GlslMinifyInternal({}, nodeReadFile, nodeDirname);
+  it('Supports multiple uniforms on a single line, comma-separated', async () => {
+    const glsl = new GlslMinifyInternal();
     const file = await glsl.readFile('tests/glsl/commas-uniforms.glsl');
     const output = await glsl.executeFile(file);
 
@@ -231,13 +181,12 @@ describe('GlslMinify', () => {
     expect(countProperties(output.uniforms)).toEqual(3);
 
     // Compare against the expected output
-    const expected = await glsl.readFile('tests/glsl/commas-uniforms.min.glsl');
-    expect(output.sourceCode).toEqual(trim(expected.contents));
-    done();
+    const expected = await glsl.readAndTrimFile('tests/glsl/commas-uniforms.min.glsl');
+    expect(output.sourceCode).toEqual(expected);
   });
 
-  it('Supports multiple uniforms on a single line, comma-separated, with preserveUniforms', async (done) => {
-    const glsl = new GlslMinifyInternal({ preserveUniforms: true }, nodeReadFile, nodeDirname);
+  it('Supports multiple uniforms on a single line, comma-separated, with preserveUniforms', async () => {
+    const glsl = new GlslMinifyInternal({ preserveUniforms: true });
     const file = await glsl.readFile('tests/glsl/commas-uniforms.glsl');
     const output = await glsl.executeFile(file);
 
@@ -250,30 +199,27 @@ describe('GlslMinify', () => {
     expect(output.uniforms.uBlue.variableType).toEqual('float');
     expect(countProperties(output.consts)).toEqual(0);
     expect(countProperties(output.uniforms)).toEqual(3);
-    done();
   });
 
-  it('Supports multiple variables declared and initialized on a single line, comma-separated', async (done) => {
-    const glsl = new GlslMinifyInternal({}, nodeReadFile, nodeDirname);
+  it('Supports multiple variables declared and initialized on a single line, comma-separated', async () => {
+    const glsl = new GlslMinifyInternal();
     const file = await glsl.readFile('tests/glsl/commas-variables.glsl');
     const output = await glsl.executeFile(file);
 
     // Compare against the expected output
-    const expected = await glsl.readFile('tests/glsl/commas-variables.min.glsl');
-    expect(output.sourceCode).toEqual(trim(expected.contents));
-    done();
+    const expected = await glsl.readAndTrimFile('tests/glsl/commas-variables.min.glsl');
+    expect(output.sourceCode).toEqual(expected);
   });
 
-  it('Handles precision specifiers', async (done) => {
-    const glsl = new GlslMinifyInternal({}, nodeReadFile, nodeDirname);
+  it('Handles precision specifiers', async () => {
+    const glsl = new GlslMinifyInternal();
     const file = await glsl.readFile('tests/glsl/precision.glsl');
     const output = await glsl.executeFile(file);
 
     // Compare against the expected output
-    const expected = await glsl.readFile('tests/glsl/precision.min.glsl');
-    expect(output.sourceCode).toEqual(trim(expected.contents));
+    const expected = await glsl.readAndTrimFile('tests/glsl/precision.min.glsl');
+    expect(output.sourceCode).toEqual(expected);
     expect(countProperties(output.consts)).toEqual(0);
     expect(countProperties(output.uniforms)).toEqual(1);
-    done();
   });
 });
