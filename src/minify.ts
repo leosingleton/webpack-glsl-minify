@@ -32,10 +32,7 @@ export interface GlslFile {
   contents: string;
 }
 
-/**
- * List of GLSL reserved keywords to avoid mangling. We automatically include any gl_ variables.
- */
-const glslReservedKeywords = [
+const glslTypes = [
   // Basic types
   'bool', 'double', 'float', 'int', 'uint',
 
@@ -67,8 +64,12 @@ const glslReservedKeywords = [
   'sampler1DShadow', 'sampler2DShadow', 'samplerCubeShadow', 'sampler2DRectShadow', 'sampler1DArrayShadow',
   'sampler2DArrayShadow', 'samplerCubeArrayShadow',
 
+  'void'
+];
+
+const glslTypeQualifiers = [
   // Other type-related keywords
-  'attribute', 'const', 'false', 'invariant', 'struct', 'true', 'uniform', 'varying', 'void',
+  'attribute', 'const', 'invariant', 'struct', 'uniform', 'varying',
 
   // Precision keywords
   'highp', 'lowp', 'mediump', 'precision',
@@ -76,12 +77,28 @@ const glslReservedKeywords = [
   // Input/output keywords
   'in', 'inout', 'out',
 
+  // Interpolation qualifiers
+  'flat', 'noperspective', 'smooth', 'centroid', 'sample',
+
+  // Memory qualifiers
+  'coherent', 'volatile', 'restrict', 'readonly', 'writeonly'
+];
+
+const glslConstantValues = [
+  'false', 'true',
+
+  // Built-in macros
+  '__FILE__', '__LINE__', '__VERSION__', 'GL_ES', 'GL_FRAGMENT_PRECISION_HIGH'
+];
+
+const glslControlKeywords = [
   // Control keywords
   'break', 'continue', 'do', 'else', 'for', 'if', 'main', 'return', 'while',
 
-  // Built-in macros
-  '__FILE__', '__LINE__', '__VERSION__', 'GL_ES', 'GL_FRAGMENT_PRECISION_HIGH',
+  'discard'
+];
 
+const glslBuiltinFunctions = [
   // Trig functions
   'acos', 'acosh', 'asin', 'asinh', 'atan', 'atanh', 'cos', 'cosh', 'degrees', 'radians', 'sin', 'sinh', 'tan', 'tanh',
 
@@ -115,11 +132,12 @@ const glslReservedKeywords = [
   // Derivative functions
   'dFdx', 'dFdxCoarse', 'dFdxFine',
   'dFdy', 'dFdyCoarse', 'dFdyFine',
-  'fwidth', 'fwidthCoarse', 'fwidthFine',
-
-  // Miscellaneous
-  'discard'
+  'fwidth', 'fwidthCoarse', 'fwidthFine'
 ];
+
+/** List of GLSL reserved keywords to avoid mangling. We automatically include any gl_ variables. */
+const glslReservedKeywords = [].concat(glslTypes, glslTypeQualifiers, glslConstantValues, glslControlKeywords,
+  glslBuiltinFunctions);
 
 /**
  * Helper class to minify tokens and track reserved ones
@@ -220,11 +238,17 @@ export class TokenMap {
 }
 
 export enum TokenType {
-  /**
-   * Normal token. May be a variable, function, or reserved keyword. (Note: attribute, uniform, and varying are
-   * handled specially below)
-   */
+  /** A user-created token such as a custom function or variable name */
   ttToken,
+
+  /**
+   * A built-in token in the GLSL language, such as a function or reserved keyword. (Note: types and type qualifiers
+   * are handled specially below)
+   */
+  ttReservedToken,
+
+  /** A variable type: int, float, vec2, etc. */
+  ttType,
 
   /** The attribute keyword */
   ttAttribute,
@@ -234,12 +258,6 @@ export enum TokenType {
 
   /** The varying keyword */
   ttVarying,
-
-  /** Precision specifier: highp, mediump, or lowp  */
-  ttPrecision,
-
-  /** The return keyword */
-  ttReturn,
 
   /** An operator, including brackets and parentheses. (Note: dot and semicolons are special ones below) */
   ttOperator,
@@ -253,7 +271,7 @@ export enum TokenType {
   /** A numeric value */
   ttNumeric,
 
-  /** A GLGL preprocessor directive */
+  /** A GLSL preprocessor directive */
   ttPreprocessor,
 
   /** Special value used in the parser when there is no token */
@@ -535,10 +553,10 @@ export class GlslMinify {
       return TokenType.ttUniform;
     } else if (token === 'varying') {
       return TokenType.ttVarying;
-    } else if (token === 'highp' || token === 'mediump' || token === 'lowp') {
-      return TokenType.ttPrecision;
-    } else if (token === 'return') {
-      return TokenType.ttReturn;
+    } else if (glslTypes.indexOf(token) > -1) {
+      return TokenType.ttType;
+    } else if (glslReservedKeywords.indexOf(token) > -1) {
+      return TokenType.ttReservedToken;
     } else if (token === ';') {
       return TokenType.ttSemicolon;
     } else if (token === '.') {
@@ -568,14 +586,34 @@ export class GlslMinify {
     //  4) GLSL preprocessor directive beginning with #
     const tokenRegex = /[\w$]+|[^\s\w#.]+|\.|#.*/g;
 
-    // Minifying requires a simple state machine the lookbacks to the previous two tokens
-    let match: string[];
-    let uniformType: string;
+    //
+    // Minifying uses a simple state machine which tracks the following four state variables:
+    //
+
+    /** Set when the state machine is within a uniform, attribute, or varying declaration */
+    let declarationType = TokenType.ttNone;
+
+    /** The last seen variable type (one of the glslTypes string values) */
+    let variableType: string;
+
+    /** Set when the previous token may require whitespace separating it from the next token */
+    let mayRequireTrailingSpace = false;
+
+    /** Token type of the immediately preceding token */
     let prevType = TokenType.ttNone;
-    let prevPrevType = TokenType.ttNone;
+
+    let match: string[];
     while ((match = tokenRegex.exec(content))) {
       const token = match[0];
       const type = GlslMinify.getTokenType(token);
+
+      /** Helper function to concatenate `token` to `output` */
+      function writeToken(mayRequirePrecedingSpace: boolean, outputToken = token): void {
+        if (mayRequirePrecedingSpace && mayRequireTrailingSpace) {
+          output += ' ';
+        }
+        output += outputToken;
+      }
 
       switch (type) {
         case TokenType.ttPreprocessor: {
@@ -598,6 +636,11 @@ export class GlslMinify {
 
             // Preprocessor directives are special in that they require the newline
             output += token + '\n';
+
+            // They also end any variable declaration
+            declarationType = TokenType.ttNone;
+            variableType = undefined;
+            mayRequireTrailingSpace = false;
             break;
           }
 
@@ -607,81 +650,92 @@ export class GlslMinify {
               break;
             }
 
-            // Special case if the numeric token follows a "return" token and it needs a space between (e.g "return 1")
-            if (prevType === TokenType.ttReturn) {
-              output += ' ';
-            }
+            writeToken(true);
+
+            mayRequireTrailingSpace = true;
+            break;
           }
-          // eslint-disable-next-line no-fallthrough
 
         case TokenType.ttSemicolon: {
-            // A semicolon ends a uniform declaration
-            uniformType = undefined;
+            writeToken(false);
+
+            // A semicolon ends a variable declaration
+            declarationType = TokenType.ttNone;
+            variableType = undefined;
+            mayRequireTrailingSpace = false;
+            break;
           }
-          // eslint-disable-next-line no-fallthrough
 
         case TokenType.ttOperator:
         case TokenType.ttDot: {
-            output += token;
+            writeToken(false);
+
+            mayRequireTrailingSpace = false;
             break;
           }
 
-        case TokenType.ttToken:
         case TokenType.ttAttribute:
         case TokenType.ttUniform:
-        case TokenType.ttVarying:
-        case TokenType.ttReturn: {
+        case TokenType.ttVarying: {
+            writeToken(true);
+
+            declarationType = type;
+            mayRequireTrailingSpace = true;
+            break;
+          }
+
+        case TokenType.ttType: {
+            writeToken(true);
+
+            variableType = token;
+            mayRequireTrailingSpace = true;
+            break;
+          }
+
+        case TokenType.ttReservedToken: {
+            writeToken(true);
+
+            mayRequireTrailingSpace = true;
+            break;
+          }
+
+        case TokenType.ttToken: {
             // Special case: a token following a dot is a swizzle mask. Leave it as-is.
             if (prevType === TokenType.ttDot) {
-              output += token;
+              writeToken(false);
+              mayRequireTrailingSpace = true;
               break;
             }
 
-            // Store the token following the uniform keyword as it is the uniform type
-            if (prevType === TokenType.ttUniform) {
-              uniformType = token;
-            }
-
-            // For attribute and varying declarations, turn off minification.
-            if (prevPrevType === TokenType.ttAttribute || prevPrevType === TokenType.ttVarying) {
-              this.tokens.reserveKeywords([token]);
-            }
-
-            // Try to minify the token
-            let minToken: string;
-            if (uniformType) {
-              // This is a special case of a uniform declaration
-              if (this.options.preserveUniforms) {
+            switch (declarationType) {
+              case TokenType.ttAttribute:
+              case TokenType.ttVarying:
+                // For attribute and varying declarations, turn off minification.
                 this.tokens.reserveKeywords([token]);
-              }
-              minToken = this.tokens.minifyToken(token, uniformType);
-            } else {
-              // Normal token
-              if (this.options.preserveVariables) {
-                this.tokens.reserveKeywords([token]);
-              }
-              minToken = this.tokens.minifyToken(token);
+                writeToken(true);
+                break;
+
+              case TokenType.ttUniform:
+                if (this.options.preserveUniforms) {
+                  this.tokens.reserveKeywords([token]);
+                }
+                writeToken(true, this.tokens.minifyToken(token, variableType));
+                break;
+
+              default:
+                if (this.options.preserveVariables) {
+                  this.tokens.reserveKeywords([token]);
+                }
+                writeToken(true, this.tokens.minifyToken(token));
+                break;
             }
 
-            // When outputting, if the previous token was not an operator, semicolon, or newline, leave a space.
-            if (prevType !== TokenType.ttOperator && prevType !== TokenType.ttPreprocessor &&
-                prevType !== TokenType.ttSemicolon && prevType !== TokenType.ttNone) {
-              output += ' ';
-            }
-            output += minToken;
+            mayRequireTrailingSpace = true;
             break;
-          }
-
-        case TokenType.ttPrecision: {
-            // Special case for precision specifiers: we output the keyword, but 'continue' instead of 'break' as to
-            // not update the prevType and prevPrevType variables below.
-            output += ' ' + token;
-            continue;
           }
       }
 
       // Advance to the next token
-      prevPrevType = prevType;
       prevType = type;
     }
 
