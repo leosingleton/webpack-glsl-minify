@@ -272,6 +272,8 @@ describe('GlslMinify', () => {
     // Compare against the expected output
     const expected = await glsl.readFile('tests/glsl/precision.min.glsl');
     expect(output.sourceCode).toEqual(trim(expected.contents));
+    expect(countProperties(output.consts)).toEqual(0);
+    expect(countProperties(output.uniforms)).toEqual(1);
     done();
   });
 });
