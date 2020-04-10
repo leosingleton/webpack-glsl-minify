@@ -4,7 +4,7 @@
   "uniforms": {
     "myUniform": {
       "variableName": "A",
-      "variableType": "float"
+      "variableType": "vec2"
     }
   }
 }

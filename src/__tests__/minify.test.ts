@@ -49,54 +49,6 @@ describe('GlslMinify', () => {
     expect(GlslMinifyInternal.getTokenType('176U')).toEqual(TokenType.ttNumeric);   // Unsigned Base 10
   });
 
-  it('Minifies a vertex shader', async () => {
-    const glsl = new GlslMinifyInternal();
-    const file = await glsl.readFile('tests/glsl/minify1.glsl');
-    const output = await glsl.executeFile(file);
-
-    // Read the expected output
-    const expected = await glsl.readAndTrimFile('tests/glsl/minify1.min.glsl');
-    expect(output.sourceCode).toEqual(expected);
-    expect(output.uniforms.u_flipY.variableName).toEqual('A');
-    expect(output.uniforms.u_flipY.variableType).toEqual('float');
-    expect(countProperties(output.consts)).toEqual(0);
-    expect(countProperties(output.uniforms)).toEqual(1);
-  });
-
-  it('Minifies a fragment shader', async () => {
-    const glsl = new GlslMinifyInternal();
-    const file = await glsl.readFile('tests/glsl/minify2.glsl');
-    const output = await glsl.executeFile(file);
-
-    // Read the expected output
-    const expected = await glsl.readAndTrimFile('tests/glsl/minify2.min.glsl');
-    expect(output.sourceCode).toEqual(expected);
-    expect(output.uniforms.u_y.variableName).toEqual('A');
-    expect(output.uniforms.u_y.variableType).toEqual('sampler2D');
-    expect(output.uniforms.u_cb.variableName).toEqual('B');
-    expect(output.uniforms.u_cb.variableType).toEqual('sampler2D');
-    expect(output.uniforms.u_cr.variableName).toEqual('C');
-    expect(output.uniforms.u_cr.variableType).toEqual('sampler2D');
-    expect(countProperties(output.consts)).toEqual(0);
-    expect(countProperties(output.uniforms)).toEqual(3);
-  });
-
-  it('Minifies a complex fragment shader', async () => {
-    const glsl = new GlslMinifyInternal();
-    const file = await glsl.readFile('tests/glsl/minify3.glsl');
-    const output = await glsl.executeFile(file);
-
-    // Read the expected output
-    const expected = await glsl.readAndTrimFile('tests/glsl/minify3.min.glsl');
-    expect(output.sourceCode).toEqual(expected);
-    expect(output.uniforms.iResolution.variableName).toEqual('A');
-    expect(output.uniforms.iResolution.variableType).toEqual('vec3');
-    expect(output.uniforms.iChannel0.variableName).toEqual('B');
-    expect(output.uniforms.iChannel0.variableType).toEqual('sampler2D');
-    expect(countProperties(output.consts)).toEqual(0);
-    expect(countProperties(output.uniforms)).toEqual(2);
-  });
-
   it('Stringifies an object', () => {
     const myobj = {
       prop1: 'hello',

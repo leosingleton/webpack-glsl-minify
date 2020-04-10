@@ -1,0 +1,14 @@
+{
+  "sourceCode": "#version 100\nuniform vec3 A;uniform sampler2D B;\n#define C 20\nvec3 D(in vec3 E){mat3 F=mat3(0.299,0.587,0.114,-0.168736,-0.331264,0.5,0.5,-0.418668,-0.081312);vec3 G=vec3(0,0.5,0.5);return E*F+G;}vec3 H(in vec3 E){vec3 G=vec3(0,-0.5,-0.5);mat3 F=mat3(1.,0.,1.402,1.,-0.344136,-0.714136,1.,1.772,0.);return(E+G)*F;}vec3 I(in sampler2D J,in vec2 K,in vec3 L){vec2 M=K/L.xy;vec3 N=texture2D(J,M).rgb;return D(N);}void O(out vec4 P,in vec2 K){float Q=1.;float R=0.;for(int S=-C;S<=C;S++){for(int T=-C;T<=C;T++){vec2 U=vec2(S,T);vec3 V=I(B,K+U,A);float W=1.-(float(abs(S))/float(C));float X=1.-(float(abs(T))/float(C));W=smoothstep(-1.,1.,W);X=smoothstep(-1.,1.,W);float Y=W*X;R=max(R,V.x*Y);Q=min(Q,V.x*Y);}}vec3 Z=I(B,K,A);Q=min(Q,R-0.5);float a=smoothstep(Q,R,Z.x);vec3 N=vec3(a,Z.yz);N.yz=mix(N.yz,vec2(0.5),smoothstep(0.9,1.,N.x));P=vec4(H(N),1.);}",
+  "consts": {},
+  "uniforms": {
+    "iResolution": {
+      "variableName": "A",
+      "variableType": "vec3"
+    },
+    "iChannel0": {
+      "variableName": "B",
+      "variableType": "sampler2D"
+    }
+  }
+}
