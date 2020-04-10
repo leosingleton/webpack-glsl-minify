@@ -1,0 +1,1 @@
+precision mediump float;uniform lowp float A;varying highp vec2 vTexCoord;highp vec4 B(in lowp float C){return vec4(C);}void main(){highp vec4 D=B(1.);gl_FragColor=D*A;}
