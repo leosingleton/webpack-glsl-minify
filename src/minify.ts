@@ -586,10 +586,10 @@ export class GlslMinify {
 
     // The token regex looks for any of four items:
     //  1) An alphanumeric token (\w+), which may include underscores (or $ for substitution values)
-    //  2) One or more operators (non-alphanumeric, non-dot)
+    //  2) An operators (non-alphanumeric, non-dot). May consist of 2 characters if it ends in an =, e.g. <=, +=, or ==.
     //  3) A dot operator
     //  4) GLSL preprocessor directive beginning with #
-    const tokenRegex = /[\w$]+|[^\s\w#.]+|\.|#.*/g;
+    const tokenRegex = /[\w$]+|[^\s\w#.]=?|\.|#.*/g;
 
     //
     // Minifying uses a simple state machine which tracks the following four state variables:
