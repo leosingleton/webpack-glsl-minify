@@ -1,0 +1,19 @@
+{
+  "sourceCode": "precision mediump float;varying vec2 vCoord;uniform sampler2D A;const int B=$0$;uniform vec3 C[B];void main(){vec4 D=vec4(0.);for(int E=0;E<B;E++){vec3 F=C[E];D+=texture2D(A,vCoord+F.xy)*F.z;}gl_FragColor=D;}",
+  "consts": {
+    "PIXELS": {
+      "variableName": "$0$",
+      "variableType": "int"
+    }
+  },
+  "uniforms": {
+    "uInput": {
+      "variableName": "A",
+      "variableType": "sampler2D"
+    },
+    "uPixels": {
+      "variableName": "C",
+      "variableType": "vec3"
+    }
+  }
+}
