@@ -1,0 +1,31 @@
+{
+  "sourceCode": "const int A=$0$;precision mediump float;varying vec2 vCoord;uniform sampler2D B;uniform vec2 C;uniform float D[A];uniform int E;uniform int F;void main(){vec2 G=vec2(1.,1.)/C;const int H=A/2;vec4 I=vec4(0.);for(int J=0;J<A;J++){int K=J-H;I+=texture2D(B,vCoord+G*vec2(K*E,K*F))*D[J];}gl_FragColor=vec4(I.rgb,1.);}",
+  "consts": {
+    "KERNEL_SIZE": {
+      "variableName": "$0$",
+      "variableType": "int"
+    }
+  },
+  "uniforms": {
+    "uInput": {
+      "variableName": "B",
+      "variableType": "sampler2D"
+    },
+    "uInputSize": {
+      "variableName": "C",
+      "variableType": "vec2"
+    },
+    "uKernel": {
+      "variableName": "D",
+      "variableType": "float"
+    },
+    "uIsX": {
+      "variableName": "E",
+      "variableType": "int"
+    },
+    "uIsY": {
+      "variableName": "F",
+      "variableType": "int"
+    }
+  }
+}
