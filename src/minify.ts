@@ -259,8 +259,11 @@ export enum TokenType {
   /** The varying keyword */
   ttVarying,
 
-  /** An operator, including brackets and parentheses. (Note: dot and semicolons are special ones below) */
+  /** An operator, including parentheses. (Note: dots, brackets, and semicolons are also special ones below) */
   ttOperator,
+
+  /** [ or ] */
+  ttBracket,
 
   /** A semicolon */
   ttSemicolon,
@@ -561,6 +564,8 @@ export class GlslMinify {
       return TokenType.ttSemicolon;
     } else if (token === '.') {
       return TokenType.ttDot;
+    } else if (token === '[' || token === ']') {
+      return TokenType.ttBracket;
     } else if (token[0] === '#') {
       return TokenType.ttPreprocessor;
     } else if (/[0-9]/.test(token[0])) {
@@ -667,6 +672,7 @@ export class GlslMinify {
           }
 
         case TokenType.ttOperator:
+        case TokenType.ttBracket:
         case TokenType.ttDot: {
             writeToken(false);
 
@@ -707,7 +713,14 @@ export class GlslMinify {
               break;
             }
 
-            switch (declarationType) {
+            // Another special case: if the token follows a bracket, it is an array size not a variable/uniform
+            // declaration, e.g. `uniform vec3 u[ARRAY_SIZE]`.
+            let realDeclarationType = declarationType;
+            if (prevType === TokenType.ttBracket) {
+              realDeclarationType = TokenType.ttNone;
+            }
+
+            switch (realDeclarationType) {
               case TokenType.ttAttribute:
               case TokenType.ttVarying:
                 // For attribute and varying declarations, turn off minification.
