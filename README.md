@@ -125,6 +125,7 @@ module: {
         loader: 'webpack-glsl-minify',
         options: {
           output: 'object',
+          esModule: false,
           stripVersion: false,
           preserveDefines: false,
           preserveUniforms: false,
