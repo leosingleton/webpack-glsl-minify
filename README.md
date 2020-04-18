@@ -146,6 +146,8 @@ This loader also supports the following loader-specific options:
 * `output`: Default `'object'`, which outputs JavaScript code which exports an object described in the section above.
     Alternatively, `'source'` may be specified which exports only a string containing the source code instead.
     Selecting `'source'` automatically disables mangling of uniforms as there is no output map of the mangled names.
+* `esModule`: Default `false`. Uses ES modules syntax instead of CommonJS. Applies to the "object" and "source"
+    output formats.
 * `stripVersion`: Default `false`. Strips any `#version` directives.
 * `preserveDefines`: Default `false`. Disables name mangling of `#define`s.
 * `preserveUniforms`: Default `false`. Disables name mangling of uniforms.
@@ -174,6 +176,8 @@ Options:
                        the same directory as the input .glsl file.      [string]
   --output             Output format
                  [choices: "object", "source", "sourceOnly"] [default: "object"]
+  --esModule           Uses ES modules syntax. Applies to the "object" and
+                       "source" output formats.                        [boolean]
   --stripVersion       Strips any #version directives                  [boolean]
   --preserveDefines    Disables name mangling of #defines              [boolean]
   --preserveUniforms   Disables name mangling of uniforms              [boolean]

@@ -14,6 +14,7 @@ interface Arguments {
   ext: string;
   outDir?: string;
   output?: GlslOutputFormat;
+  esModule?: boolean;
   stripVersion?: boolean;
   preserveDefines?: boolean;
   preserveUniforms?: boolean;
@@ -44,6 +45,10 @@ const argv = yargs
       choices: outputFormats,
       describe: 'Output format',
       default: 'object'
+    },
+    esModule: {
+      describe: 'Uses ES modules syntax. Applies to the "object" and "source" output formats.',
+      type: 'boolean'
     },
     stripVersion: {
       describe: 'Strips any #version directives',
@@ -76,6 +81,7 @@ const argv = yargs
 // Create minifier
 const glsl = new GlslMinify({
   output: argv.output,
+  esModule: argv.esModule,
   stripVersion: argv.stripVersion,
   preserveDefines: argv.preserveDefines,
   preserveUniforms: argv.preserveUniforms,

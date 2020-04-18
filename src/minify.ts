@@ -304,6 +304,9 @@ export interface GlslMinifyOptions {
   /** Output format. Default = 'object'. */
   output?: GlslOutputFormat;
 
+  /** Uses ES modules syntax. Applies to the "object" and "source" output formats. Default = false. */
+  esModule?: boolean;
+
   /** Strips any #version directives. Default = false. */
   stripVersion?: boolean;
 
@@ -762,17 +765,18 @@ export class GlslMinify {
 
   public async executeFileAndStringify(input: GlslFile): Promise<string> {
     const program = await this.executeFile(input);
+    const esModule = this.options.esModule;
 
     switch (this.options.output) {
       case 'sourceOnly':
         return program.sourceCode;
 
       case 'source':
-        return 'module.exports = ' + GlslMinify.stringify(program.sourceCode);
+        return `${esModule ? 'export default' : 'module.exports ='} ${GlslMinify.stringify(program.sourceCode)}`;
 
       case 'object':
       default:
-        return 'module.exports = ' + GlslMinify.stringify(program);
+        return `${esModule ? 'export default' : 'module.exports ='} ${GlslMinify.stringify(program)}`;
     }
   }
 
