@@ -543,9 +543,10 @@ export class GlslMinify {
       // Assign a substitution value
       const substitutionValue = this.assignSubstitionValue(constName, constType);
 
-      // Replace the directive with a constant declaration
+      // Replace the directive with a constant declaration. Note that `String.replace()` has special treatment of $ in
+      // the replacement string parameter, so we provide a lambda to the replacement string to disable that.
       const newCode = `const ${constType} ${constName}=${substitutionValue};`;
-      output = output.replace(constRegex, newCode);
+      output = output.replace(constRegex, () => newCode);
     }
 
     return output;
