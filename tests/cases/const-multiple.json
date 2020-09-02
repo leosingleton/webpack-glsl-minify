@@ -1,0 +1,18 @@
+{
+  "sourceCode": "const int A=$0$;const int B=$1$;const int C=$2$;",
+  "consts": {
+    "sizeOfSliceInsideAtlas": {
+      "variableName": "$0$",
+      "variableType": "int"
+    },
+    "zSlicesCount": {
+      "variableName": "$1$",
+      "variableType": "int"
+    },
+    "zSlicesNormalTexCount": {
+      "variableName": "$2$",
+      "variableType": "int"
+    }
+  },
+  "uniforms": {}
+}
