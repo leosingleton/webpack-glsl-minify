@@ -29,16 +29,10 @@ jobs:
     - name: Execute unit tests
       run: npm run test
 
-# From Azure Pipelines... Need GitHub Actions equivalent...
-#- task: PublishTestResults@2
-#  inputs:
-#    testResultsFormat: 'JUnit'
-#    testResultsFiles: 'build/results.xml'
-
     - name: Upload Build Artifact
       uses: actions/upload-artifact@v2
       with:
-        name: webpack-glsl-minify-${{github.run_number}}.zip
+        name: webpack-glsl-minify-${{github.run_number}}
         path: |
           **
           !**/node_modules/**
