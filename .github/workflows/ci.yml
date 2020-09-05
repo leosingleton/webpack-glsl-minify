@@ -1,0 +1,44 @@
+name: CI
+
+on: push
+
+jobs:
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v1
+    
+    - name: Install Node 12.x
+      uses: actions/setup-node@v1
+      with:
+        node-version: 12.x
+    
+    - name: Install NPM Packages
+      run: npm install
+
+    - name: Lint
+      run: npm run lint
+
+    - name: Compile
+      run: npm run build
+
+    - name: Execute unit tests
+      run: npm run test
+
+# From Azure Pipelines... Need GitHub Actions equivalent...
+#- task: PublishTestResults@2
+#  inputs:
+#    testResultsFormat: 'JUnit'
+#    testResultsFiles: 'build/results.xml'
+
+    - name: Upload Build Artifact
+      uses: actions/upload-artifact@v2
+      with:
+        name: webpack-glsl-minify-${{github.run_number}}.zip
+        path: |
+          **
+          !**/node_modules/**

@@ -1,4 +1,5 @@
 # GLSL Preprocessor, Minifier, and Webpack Loader
+![CI](https://github.com/leosingleton/webpack-glsl-minify/workflows/CI/badge.svg)
 [![Build Status](https://dev.azure.com/leosingleton/webpack-glsl-minify/_apis/build/status/leosingleton.webpack-glsl-minify?branchName=master)](https://dev.azure.com/leosingleton/webpack-glsl-minify/_build/latest?definitionId=1?branchName=master)
 [![npm version](https://badge.fury.io/js/webpack-glsl-minify.svg)](https://badge.fury.io/js/webpack-glsl-minify)
 
