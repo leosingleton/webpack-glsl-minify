@@ -32,7 +32,7 @@ jobs:
     - name: Publish Code Coverage
       uses: codecov/codecov-action@v1
       with:
-        file: build/cobertura-coverage.xml
+        directory: build
 
     - name: Upload Build Artifact
       uses: actions/upload-artifact@v2

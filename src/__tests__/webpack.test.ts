@@ -17,7 +17,8 @@ async function runWebpack(configFile: string): Promise<string> {
   // Run the output JavaScript file in NodeJS to ensure it is valid
   const node = process.argv0;
   const outputJS = path.resolve(workingDir, '../../build/__tests__/webpack/index.js');
-  await fsAsync.exec(`${node} ${outputJS}`, workingDir);
+  const codeCoverage = path.resolve(workingDir, '../../build/cov');
+  await fsAsync.exec(`${node} ${outputJS}`, workingDir, codeCoverage);
 
   // Read the output file produced by Webpack and return it
   const outputFile = path.resolve(workingDir, '../../build/__tests__/webpack/index.js');
