@@ -16,7 +16,7 @@
   },
   "devDependencies": {
     "@types/glob": "^7.1.3",
-    "@types/jasmine-node": "^1.14.34",
+    "@types/jest": "^26.0.14",
     "@types/loader-utils": "^2.0.1",
     "@types/webpack": "^4.41.22",
     "@types/yargs": "^15.0.8",
@@ -27,8 +27,9 @@
     "eslint-plugin-github": "^4.1.1",
     "eslint-plugin-import": "^2.22.1",
     "eslint-plugin-jsdoc": "^30.6.4",
-    "jasmine": "^3.6.1",
-    "jasmine-xml-reporter": "^1.2.1",
+    "jest": "^26.5.3",
+    "jest-junit": "^12.0.0",
+    "ts-jest": "^26.4.1",
     "loader-utils": "^2.0.0",
     "typescript": "^4.0.3",
     "webpack": "^4.44.2",
@@ -38,7 +39,7 @@
     "build": "npx tsc",
     "clean": "rm -rf ./build",
     "lint": "npx eslint \"**/*.ts\" \"**/*.js\"",
-    "test": "./node_modules/jasmine-xml-reporter/bin/jasmine.js ./build/__tests__/*.test.js --junitreport --output=build/"
+    "test": "npx jest"
   },
   "files": [
     "bin/*",
