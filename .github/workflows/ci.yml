@@ -36,3 +36,10 @@ jobs:
         path: |
           **
           !**/node_modules/**
+
+    - name: Publish NPM Package
+      if: github.ref == 'refs/heads/master'
+      uses: JS-DevTools/npm-publish@v1
+      with:
+        package: js/package.json
+        token: ${{ secrets.NPM_TOKEN }}
