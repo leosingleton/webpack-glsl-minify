@@ -1,6 +1,7 @@
 # GLSL Preprocessor, Minifier, and Webpack Loader
 ![CI](https://github.com/leosingleton/webpack-glsl-minify/workflows/CI/badge.svg)
 [![npm version](https://badge.fury.io/js/webpack-glsl-minify.svg)](https://badge.fury.io/js/webpack-glsl-minify)
+[![codecov](https://codecov.io/gh/leosingleton/webpack-glsl-minify/branch/master/graph/badge.svg)](https://codecov.io/gh/leosingleton/webpack-glsl-minify)
 
 webpack-glsl-minify is a loader for Webpack that handles GLSL files. In addition to simply loading the GLSL program
 into a JavaScript string, it also has a preprocessor which executes at compile time, and a minifier which shrinks the

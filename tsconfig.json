@@ -1,18 +1,18 @@
 {
-    "compilerOptions": {
-        "outDir": "build",
-        "module": "commonjs",
-        "moduleResolution": "node",
-        "allowJs": false,
-        "noImplicitAny": true,
-        "preserveConstEnums": true,
-        "sourceMap": true,
-        "target": "es6",
-        "removeComments": false,
-        "declaration": true
-    },
-    "include": [
-        "src/**/*"
-    ],
-    "types": []
+  "compilerOptions": {
+    "outDir": "build",
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "allowJs": false,
+    "noImplicitAny": true,
+    "preserveConstEnums": true,
+    "sourceMap": true,
+    "target": "es6",
+    "removeComments": false,
+    "declaration": true
+  },
+  "include": [
+    "src/**/*"
+  ],
+  "types": []
 }

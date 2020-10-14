@@ -12,7 +12,7 @@ async function runWebpack(configFile: string): Promise<string> {
   }
 
   // Launch Webpack
-  await fsAsync.exec(`npx webpack --mode=production --config=${configFile}`, workingDir);
+  await fsAsync.exec(`npx nyc --silent --no-clean npx webpack --mode=production --config=${configFile}`, workingDir);
 
   // Run the output JavaScript file in NodeJS to ensure it is valid
   const node = process.argv0;
