@@ -1,7 +1,7 @@
 {
   "extends": "@istanbuljs/nyc-config-typescript",
 
-  "report-dir": "./build/coverage",
+  "report-dir": "./build",
   "all": true,
   "include": [
     "src/**/*.ts"

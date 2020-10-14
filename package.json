@@ -43,7 +43,7 @@
     "build": "npx tsc",
     "clean": "rm -rf ./build",
     "lint": "npx eslint \"**/*.ts\" \"**/*.js\"",
-    "test": "npx nyc --silent npx jest && npx nyc merge .nyc_output build/coverage.json"
+    "test": "npx nyc -r cobertura -r text npx jest"
   },
   "files": [
     "bin/*",
