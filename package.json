@@ -15,6 +15,7 @@
     "yargs": "^16.0.3"
   },
   "devDependencies": {
+    "@istanbuljs/nyc-config-typescript": "^1.0.1",
     "@types/glob": "^7.1.3",
     "@types/jest": "^26.0.14",
     "@types/loader-utils": "^2.0.1",
@@ -29,8 +30,11 @@
     "eslint-plugin-jsdoc": "^30.6.4",
     "jest": "^26.5.3",
     "jest-junit": "^12.0.0",
-    "ts-jest": "^26.4.1",
     "loader-utils": "^2.0.0",
+    "nyc": "^15.1.0",
+    "source-map-support": "^0.5.19",
+    "ts-jest": "^26.4.1",
+    "ts-node": "^9.0.0",
     "typescript": "^4.0.3",
     "webpack": "^4.44.2",
     "webpack-cli": "^4.0.0"
@@ -39,7 +43,7 @@
     "build": "npx tsc",
     "clean": "rm -rf ./build",
     "lint": "npx eslint \"**/*.ts\" \"**/*.js\"",
-    "test": "npx jest"
+    "test": "npx nyc --silent npx jest && npx nyc merge .nyc_output build/coverage.json"
   },
   "files": [
     "bin/*",

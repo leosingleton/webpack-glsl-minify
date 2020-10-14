@@ -57,14 +57,9 @@ export async function mkdirp(p: string): Promise<void> {
   await mkdir(dirname);
 }
 
-export function exec(command: string, cwd: string, codeCoverageDir?: string): Promise<void> {
+export function exec(command: string, cwd: string): Promise<void> {
   return new Promise((resolve, reject) => {
-    const env = process.env;
-    if (codeCoverageDir) {
-      env.NODE_V8_COVERAGE = codeCoverageDir;
-    }
-
-    cp.exec(command, { cwd, env }, (err, stdout, stderr) => {
+    cp.exec(command, { cwd }, (err, stdout, stderr) => {
       if (err) {
         reject(`${err}\n${stdout}\n${stderr}`);
       }

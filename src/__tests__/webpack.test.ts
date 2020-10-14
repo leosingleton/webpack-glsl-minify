@@ -12,13 +12,12 @@ async function runWebpack(configFile: string): Promise<string> {
   }
 
   // Launch Webpack
-  await fsAsync.exec(`npx webpack --mode=production --config=${configFile}`, workingDir);
+  await fsAsync.exec(`npx nyc --silent --no-clean npx webpack --mode=production --config=${configFile}`, workingDir);
 
   // Run the output JavaScript file in NodeJS to ensure it is valid
   const node = process.argv0;
   const outputJS = path.resolve(workingDir, '../../build/__tests__/webpack/index.js');
-  const codeCoverage = path.resolve(workingDir, '../../build/cov');
-  await fsAsync.exec(`${node} ${outputJS}`, workingDir, codeCoverage);
+  await fsAsync.exec(`${node} ${outputJS}`, workingDir);
 
   // Read the output file produced by Webpack and return it
   const outputFile = path.resolve(workingDir, '../../build/__tests__/webpack/index.js');

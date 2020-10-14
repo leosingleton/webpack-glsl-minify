@@ -8,9 +8,8 @@ async function runCli(inputFile: string, params: string): Promise<string> {
   // Launch CLI app
   const workingDir = path.resolve(__dirname, '../..'); // git repo root
   const outDir = 'build/__tests__/cli';
-  const cmdline = `bin/webpack-glsl-minify ${inputFile} ${params} --outDir ${outDir}`;
-  const codeCoverage = path.resolve(workingDir, '../../build/cov');
-  await fsAsync.exec(cmdline, workingDir, codeCoverage);
+  const cmdline = `npx nyc --silent --no-clean bin/webpack-glsl-minify ${inputFile} ${params} --outDir ${outDir}`;
+  await fsAsync.exec(cmdline, workingDir);
 
   // Read the output file produced by Webpack and return it
   const outputFile = path.resolve(__dirname, workingDir, outDir, inputFile + '.js');

@@ -14,13 +14,7 @@ module.exports = {
     }]
   ],
   collectCoverage: true,
-  collectCoverageFrom: [
-    'src/**/*.ts',
-    '!**/__tests__/**',
-    '!**/build/**'
-  ],
-  coverageDirectory: 'build/',
-  coverageReporters: ['cobertura', 'text'],
+  coverageReporters: ['none'],
   globals: {
     'ts-jest': {
       tsConfig: 'tsconfig.json'
