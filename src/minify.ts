@@ -139,6 +139,12 @@ const glslBuiltinFunctions = [
 const glslReservedKeywords = [].concat(glslTypes, glslTypeQualifiers, glslConstantValues, glslControlKeywords,
   glslBuiltinFunctions);
 
+// Function to test whether a given string is a swizzle identifier
+const isSwizzle = (token: string) =>
+  token.match(/^[rgba]{1,4}$/) !== null
+  || token.match(/^[xyzw]{1,4}$/) !== null
+  || token.match(/^[stpq]{1,4}$/) !== null;
+
 /**
  * Helper class to minify tokens and track reserved ones
  */
@@ -632,14 +638,18 @@ export class GlslMinify {
             }
 
             // Special case for #define: we want to minify the value being defined
-            const defineRegex = /#define\s(\w+)\s(.*)/;
+            const defineRegex = /#define\s(\w+)\b(.*)/;
             const subMatch = defineRegex.exec(token);
             if (subMatch) {
               if (this.options.preserveDefines) {
                 this.tokens.reserveKeywords([subMatch[1]]);
               }
               const minToken = this.tokens.minifyToken(subMatch[1]);
-              output += '#define ' + minToken + ' ' + subMatch[2] + '\n';
+              if (subMatch[2]?.[0] === "(") { // This is a function
+                output += "#define " + minToken + this.minifier(subMatch[2]) + "\n";
+              } else {
+                output += '#define ' + minToken + ' ' + subMatch[2] + '\n';
+              }
               break;
             }
 
@@ -711,7 +721,7 @@ export class GlslMinify {
 
         case TokenType.ttToken: {
             // Special case: a token following a dot is a swizzle mask. Leave it as-is.
-            if (prevType === TokenType.ttDot) {
+            if (prevType === TokenType.ttDot && isSwizzle(token)) {
               writeToken(false);
               mayRequireTrailingSpace = true;
               break;
