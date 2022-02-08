@@ -330,6 +330,9 @@ export interface GlslMinifyOptions {
 
   /** Additional variable names or keywords to explicitly disable name mangling */
   nomangle?: string[];
+
+  /** Only process includes, leave the rest of the file as-is (for development) Default = false. */
+  includesOnly?: boolean;
 }
 
 /**
@@ -383,22 +386,52 @@ export class GlslMinify {
 
   public async executeFile(input: GlslFile): Promise<GlslShader> {
     // Perform the minification. This takes three separate passes over the input.
-    const pass1 = await this.preprocessPass1(input);
-    const pass2 = this.preprocessPass2(pass1);
-    const pass3 = this.minifier(pass2);
+    let sourceCode = await this.processIncludes(input);
+    if (!this.options.includesOnly) {
+      const pass1 = this.preprocessPass1(sourceCode);
+      const pass2 = this.preprocessPass2(pass1);
+      sourceCode = this.minifier(pass2);
+    }
 
     return {
-      sourceCode: pass3,
+      sourceCode,
       uniforms: this.tokens.getUniforms(),
       consts: this.constValues
     };
   }
 
-  /**
-   * The first pass of the preprocessor removes comments and handles include directives
-   */
-  protected async preprocessPass1(content: GlslFile): Promise<string> {
+  protected async processIncludes(content: GlslFile): Promise<string> {
     let output = content.contents;
+    // Process @include directive
+    const includeRegex = /@include\s+(.*)/;
+    while (true) {
+      // Find the next @include directive
+      const match = includeRegex.exec(output);
+      if (!match) {
+        break;
+      }
+      // Remove potential comments that exist in this line.
+      const includeFilename = JSON.parse(this.preprocessPass1(match[1]));
+
+      // Read the file to include
+      const currentPath = content.path ? this.dirname(content.path) : undefined;
+      const includeFile = await this.readFile(includeFilename, currentPath);
+
+      // Parse recursively, as the included file may also have @include directives
+      const includeContent = await this.processIncludes(includeFile);
+
+      // Replace the @include directive with the file contents
+      output = output.replace(includeRegex, includeContent);
+    }
+
+    return output;
+  }
+
+  /**
+   * The first pass of the preprocessor removes comments
+   */
+  protected preprocessPass1(content: string): string {
+    let output = content;
 
     // Remove carriage returns. Use newlines only.
     output = output.replace('\r', '');
@@ -415,27 +448,6 @@ export class GlslMinify {
     // Remove C++ style comments
     const cppStyleRegex = /\/\/[^\n]*/g;
     output = output.replace(cppStyleRegex, '\n');
-
-    // Process @include directive
-    const includeRegex = /@include\s+(.*)/;
-    while (true) {
-      // Find the next @include directive
-      const match = includeRegex.exec(output);
-      if (!match) {
-        break;
-      }
-      const includeFilename = JSON.parse(match[1]);
-
-      // Read the file to include
-      const currentPath = content.path ? this.dirname(content.path) : undefined;
-      const includeFile = await this.readFile(includeFilename, currentPath);
-
-      // Parse recursively, as the included file may also have @include directives
-      const includeContent = await this.preprocessPass1(includeFile);
-
-      // Replace the @include directive with the file contents
-      output = output.replace(includeRegex, includeContent);
-    }
 
     return output;
   }
@@ -645,8 +657,8 @@ export class GlslMinify {
                 this.tokens.reserveKeywords([subMatch[1]]);
               }
               const minToken = this.tokens.minifyToken(subMatch[1]);
-              if (subMatch[2]?.[0] === "(") { // This is a function
-                output += "#define " + minToken + this.minifier(subMatch[2]) + "\n";
+              if (subMatch[2]?.[0] === '(') { // This is a function
+                output += '#define ' + minToken + this.minifier(subMatch[2]) + '\n';
               } else {
                 output += '#define ' + minToken + ' ' + subMatch[2] + '\n';
               }

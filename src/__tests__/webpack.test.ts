@@ -80,4 +80,14 @@ describe('Webpack Loader', () => {
     expect(output.indexOf('mat3 transform')).toEqual(-1);   // Variables are minified by default
     expect(output).toContain('#version');                   // #version directives are preserved by default
   });
+
+  it('Executes with include only and keeps content', async () => {
+    const output = await runWebpack('webpack.test8.js');
+    expect(output).toContain('// Add the texture coordinates from the vertex shader');
+    expect(output).toContain('* Convert YCbCr colorspace to RGB');
+    expect(output).toContain('gl_FragColor = vec4'); // Perserve whitespace
+    expect(output).toContain('u_cb;');               // Uniform mangling is disabled
+    expect(output).toContain('mat3 transform');      // Variables are not minified
+    expect(output).toContain('#version');            // #version directives are preserved by default
+  });
 });

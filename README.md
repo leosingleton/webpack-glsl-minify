@@ -132,7 +132,8 @@ module: {
           preserveUniforms: false,
           preserveVariables: false,
           disableMangle: false,
-          nomangle: [ 'variable1', 'variable2' ]
+          nomangle: [ 'variable1', 'variable2' ],
+          includesOnly: false,
         }
       }
     }
@@ -157,6 +158,7 @@ This loader also supports the following loader-specific options:
 * `preserveAll`: Default `false`. Disables all mangling.
 * `disableMangle`: Default `false`. Disables name mangling. This is useful for development purpose.
 * `nomangle`: Specifies an array of additional variable names or keywords to explicitly disable name mangling.
+* `includesOnly`: Default `false`. Disables all processing except include files. Useful for development!
 
 ## Using Without Webpack
 
@@ -186,6 +188,7 @@ Options:
   --preserveVariables  Disables name mangling of variables             [boolean]
   --preserveAll        Disables all mangling                           [boolean]
   --nomangle           Disables name mangling for a set of keywords      [array]
+  --includesOnly       Only process include files                      [boolean]
   --help               Show help                                       [boolean]
 ```
 
