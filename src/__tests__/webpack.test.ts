@@ -1,5 +1,5 @@
 // src/__tests__/webpack.test.ts
-// Copyright 2018-2020 Leo C. Singleton IV <leo@leosingleton.com>
+// Copyright 2018-2022 Leo C. Singleton IV <leo@leosingleton.com>
 
 import * as fsAsync from '../fsAsync';
 import * as path from 'path';
@@ -32,21 +32,21 @@ describe('Webpack Loader', () => {
     expect(output.indexOf('u_cb;')).toEqual(-1);            // Uniforms are minified by default
     expect(output.indexOf('mat3 transform')).toEqual(-1);   // Variables are minified by default
     expect(output).toContain('#version');                   // #version directives are preserved by default
-  });
+  }, 15000);
 
   it('Executes with mangling disabled', async () => {
     const output = await runWebpack('webpack.test2.js');
     expect(output).toContain('gl_FragColor=vec4');
     expect(output).toContain('u_cb;');
     expect(output).toContain('mat3 transform');
-  });
+  }, 15000);
 
   it('Executes with output = source', async () => {
     const output = await runWebpack('webpack.test3.js');
     expect(output).toContain('gl_FragColor=vec4');
     expect(output).toContain('u_cb;');                      // Uniform mangling is disables
     expect(output.indexOf('mat3 transform')).toEqual(-1);   // Variables are still minified
-  });
+  }, 15000);
 
   it('Executes with specific nomangle keywords', async () => {
     const output = await runWebpack('webpack.test4.js');
@@ -55,7 +55,7 @@ describe('Webpack Loader', () => {
     expect(output).toContain('u_cr;');                      // u_cr is in the nomangle list
     expect(output.indexOf('mat3 transform')).toEqual(-1);   // Variables are still minified
     expect(output).toContain('vec3 offset');                // offset is in the nomangle list
-  });
+  }, 15000);
 
   it('Strips #version directives', async () => {
     const output = await runWebpack('webpack.test5.js');
@@ -63,7 +63,7 @@ describe('Webpack Loader', () => {
     expect(output.indexOf('u_cb;')).toEqual(-1);            // Uniforms are minified by default
     expect(output.indexOf('mat3 transform')).toEqual(-1);   // Variables are minified by default
     expect(output.indexOf('#version')).toEqual(-1);         // #version directives are stripped in this test case
-  });
+  }, 15000);
 
   it('Executes with preserveAll', async () => {
     const output = await runWebpack('webpack.test6.js');
@@ -71,7 +71,7 @@ describe('Webpack Loader', () => {
     expect(output).toContain('u_cb;');
     expect(output).toContain('mat3 transform');
     expect(output).toContain('YCbCr2RGB(');                 // Function names are not mangled with preserveAll
-  });
+  }, 15000);
 
   it('Outputs an ES module', async () => {
     const output = await runWebpack('webpack.test7.js');
@@ -79,7 +79,7 @@ describe('Webpack Loader', () => {
     expect(output.indexOf('u_cb;')).toEqual(-1);            // Uniforms are minified by default
     expect(output.indexOf('mat3 transform')).toEqual(-1);   // Variables are minified by default
     expect(output).toContain('#version');                   // #version directives are preserved by default
-  });
+  }, 15000);
 
   it('Executes with include only and keeps content', async () => {
     const output = await runWebpack('webpack.test8.js');
@@ -89,5 +89,5 @@ describe('Webpack Loader', () => {
     expect(output).toContain('u_cb;');               // Uniform mangling is disabled
     expect(output).toContain('mat3 transform');      // Variables are not minified
     expect(output).toContain('#version');            // #version directives are preserved by default
-  });
+  }, 15000);
 });
