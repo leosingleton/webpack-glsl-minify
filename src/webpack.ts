@@ -1,17 +1,15 @@
 // src/webpack.ts
-// Copyright 2018-2020 Leo C. Singleton IV <leo@leosingleton.com>
+// Copyright 2018-2022 Leo C. Singleton IV <leo@leosingleton.com>
 
 import { GlslMinify, GlslMinifyOptions, GlslFile } from './minify';
 
-import { loader } from 'webpack';
-import LoaderContext = loader.LoaderContext;
-
-import { getOptions } from 'loader-utils';
 import { readFile } from 'fs';
+import { LoaderContext } from 'webpack';
 import { nodeDirname } from './node';
 
 /** Implementation of readFile for Webpack loaders */
-export function webpackReadFile(loader: LoaderContext, filename: string, directory?: string): Promise<GlslFile> {
+export function webpackReadFile(loader: LoaderContext<GlslMinifyOptions>, filename: string, directory?: string):
+    Promise<GlslFile> {
   return new Promise<GlslFile>((resolve, reject) => {
     // If no directory was provided, use the root GLSL file being included
     directory = directory || loader.context;
@@ -36,9 +34,9 @@ export function webpackReadFile(loader: LoaderContext, filename: string, directo
 }
 
 export async function webpackLoader(content: string): Promise<void> {
-  const loader = this as LoaderContext;
+  const loader = this as LoaderContext<GlslMinifyOptions>;
   const callback = loader.async();
-  const options = getOptions(loader) as GlslMinifyOptions;
+  const options = loader.getOptions() as GlslMinifyOptions;
 
   try {
     const glsl = new GlslMinify(options, (filename, directory) => webpackReadFile(loader, filename, directory),
