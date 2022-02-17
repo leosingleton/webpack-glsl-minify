@@ -18,8 +18,7 @@
     "@istanbuljs/nyc-config-typescript": "^1.0.2",
     "@types/glob": "^7.2.0",
     "@types/jasmine-node": "^1.14.36",
-    "@types/loader-utils": "^2.0.3",
-    "@types/webpack": "^4.41.32",
+    "@types/webpack": "^5.28.0",
     "@types/yargs": "^17.0.8",
     "@typescript-eslint/eslint-plugin": "^5.12.0",
     "@typescript-eslint/parser": "^5.12.0",
@@ -30,12 +29,11 @@
     "eslint-plugin-jsdoc": "^37.9.2",
     "jasmine": "^3.99.0",
     "jasmine-xml-reporter": "^1.2.1",
-    "loader-utils": "^2.0.2",
     "nyc": "^15.1.0",
     "source-map-support": "^0.5.21",
     "ts-node": "^10.5.0",
     "typescript": "^4.5.5",
-    "webpack": "^4.46.0",
+    "webpack": "^5.69.1",
     "webpack-cli": "^4.9.2"
   },
   "scripts": {
