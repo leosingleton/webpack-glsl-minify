@@ -12,7 +12,7 @@
   },
   "dependencies": {
     "glob": "^7.2.0",
-    "yargs": "^16.2.0"
+    "yargs": "^17.3.1"
   },
   "devDependencies": {
     "@istanbuljs/nyc-config-typescript": "^1.0.2",
@@ -20,7 +20,7 @@
     "@types/jasmine-node": "^1.14.36",
     "@types/loader-utils": "^2.0.3",
     "@types/webpack": "^4.41.32",
-    "@types/yargs": "^15.0.14",
+    "@types/yargs": "^17.0.8",
     "@typescript-eslint/eslint-plugin": "^5.12.0",
     "@typescript-eslint/parser": "^5.12.0",
     "eslint": "^8.9.0",
