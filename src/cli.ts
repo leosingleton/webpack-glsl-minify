@@ -21,6 +21,7 @@ interface Arguments {
   preserveVariables?: boolean;
   preserveAll?: boolean;
   nomangle?: string[];
+  includesOnly?: boolean;
 }
 
 const outputFormats: GlslOutputFormat[] = [ 'object', 'source', 'sourceOnly' ];
@@ -73,6 +74,10 @@ const argv = yargs
     nomangle: {
       describe: 'Disables name mangling for a set of keywords',
       type: 'array'
+    },
+    includesOnly: {
+      describe: 'Only processes include directives',
+      type: 'boolean'
     }
   })
   .help()
@@ -86,7 +91,8 @@ const glsl = new GlslMinify({
   preserveDefines: argv.preserveDefines,
   preserveUniforms: argv.preserveUniforms,
   preserveVariables: argv.preserveVariables,
-  nomangle: argv.nomangle
+  nomangle: argv.nomangle,
+  includesOnly: argv.includesOnly,
 }, nodeReadFile, nodeDirname);
 
 // Process input files

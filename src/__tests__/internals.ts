@@ -10,7 +10,11 @@ export class GlslMinifyInternal extends GlslMinify {
     super(options, nodeReadFile, nodeDirname);
   }
 
-  public preprocessPass1(content: GlslFile): Promise<string> {
+  public async processIncludes(content: GlslFile): Promise<string> {
+    return super.processIncludes(content);
+  }
+
+  public preprocessPass1(content: string): string {
     return super.preprocessPass1(content);
   }
 
