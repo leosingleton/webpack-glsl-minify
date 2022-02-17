@@ -1,0 +1,18 @@
+{
+  "sourceCode": "#version 330 es\nlayout(location=0)in vec3 A;layout(location=1)in vec2 B;uniform mat4 C;uniform mat4 D;uniform mat4 E;out VS_OUT{vec2 F;}G;void main(){gl_Position=E*D*C*vec4(A,1.);G.F=B;}",
+  "consts": {},
+  "uniforms": {
+    "model": {
+      "variableName": "C",
+      "variableType": "mat4"
+    },
+    "view": {
+      "variableName": "D",
+      "variableType": "mat4"
+    },
+    "projection": {
+      "variableName": "E",
+      "variableType": "mat4"
+    }
+  }
+}

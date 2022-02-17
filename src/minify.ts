@@ -81,7 +81,10 @@ const glslTypeQualifiers = [
   'flat', 'noperspective', 'smooth', 'centroid', 'sample',
 
   // Memory qualifiers
-  'coherent', 'volatile', 'restrict', 'readonly', 'writeonly'
+  'coherent', 'volatile', 'restrict', 'readonly', 'writeonly',
+
+  // Layout qualifiers
+  'layout', 'location'
 ];
 
 const glslConstantValues = [
@@ -265,11 +268,32 @@ export enum TokenType {
   /** The varying keyword */
   ttVarying,
 
-  /** An operator, including parentheses. (Note: dots, brackets, and semicolons are also special ones below) */
+  /** The layout keyword */
+  ttLayout,
+
+  /** The in and out keywords */
+  ttInOut,
+
+  /** An operator, excluding parentheses, dots, braces, brackets, and semicolons */
   ttOperator,
 
-  /** [ or ] */
-  ttBracket,
+  /** ( */
+  ttOpenParenthesis,
+
+  /** ) */
+  ttCloseParenthesis,
+
+  /** { */
+  ttOpenBrace,
+
+  /** } */
+  ttCloseBrace,
+
+  /** [ */
+  ttOpenBracket,
+
+  /** ] */
+  ttCloseBracket,
 
   /** A semicolon */
   ttSemicolon,
@@ -578,6 +602,10 @@ export class GlslMinify {
       return TokenType.ttUniform;
     } else if (token === 'varying') {
       return TokenType.ttVarying;
+    } else if (token === 'layout') {
+      return TokenType.ttLayout;
+    } else if (token === 'in' || token === 'out') {
+      return TokenType.ttInOut;
     } else if (glslTypes.indexOf(token) > -1) {
       return TokenType.ttType;
     } else if (glslReservedKeywords.indexOf(token) > -1) {
@@ -586,8 +614,18 @@ export class GlslMinify {
       return TokenType.ttSemicolon;
     } else if (token === '.') {
       return TokenType.ttDot;
-    } else if (token === '[' || token === ']') {
-      return TokenType.ttBracket;
+    } else if (token === '(') {
+      return TokenType.ttOpenParenthesis;
+    } else if (token === ')') {
+      return TokenType.ttCloseParenthesis;
+    } else if (token === '{') {
+      return TokenType.ttOpenBrace;
+    } else if (token === '}') {
+      return TokenType.ttCloseBrace;
+    } else if (token === '[') {
+      return TokenType.ttOpenBracket;
+    } else if (token === ']') {
+      return TokenType.ttCloseBracket;
     } else if (token[0] === '#') {
       return TokenType.ttPreprocessor;
     } else if (/[0-9]/.test(token[0])) {
@@ -617,7 +655,7 @@ export class GlslMinify {
     // Minifying uses a simple state machine which tracks the following four state variables:
     //
 
-    /** Set when the state machine is within a uniform, attribute, or varying declaration */
+    /** Set when the state machine is within a uniform, attribute, varying, or global in/out declaration */
     let declarationType = TokenType.ttNone;
 
     /** The last seen variable type (one of the glslTypes string values) */
@@ -625,6 +663,21 @@ export class GlslMinify {
 
     /** Set when the previous token may require whitespace separating it from the next token */
     let mayRequireTrailingSpace = false;
+
+    /** Counts the number of open parenthesis ( minus matching close ) */
+    let parenthesesDepth = 0;
+
+    /** Counts the number of open brace { minus matching close } */
+    let bracesDepth = 0;
+
+    /** Counts the number of open bracket [ minus matching close ] */
+    let bracketsDepth = 0;
+
+    /**
+     * Indicates the current statement has a `layout(location = X)` qualifer. In this case, linking is handled by
+     * position, not name, meaning we can mangle the variable being defined.
+     */
+    let hasLayout = false;
 
     /** Token type of the immediately preceding token */
     let prevType = TokenType.ttNone;
@@ -640,6 +693,39 @@ export class GlslMinify {
           output += ' ';
         }
         output += outputToken;
+      }
+
+      // Update depth counters
+      switch (type) {
+        case TokenType.ttOpenBrace:
+          bracesDepth++;
+          break;
+
+        case TokenType.ttOpenBracket:
+          bracketsDepth++;
+          break;
+
+        case TokenType.ttOpenParenthesis:
+          parenthesesDepth++;
+          break;
+
+        case TokenType.ttCloseBrace:
+          if (--bracesDepth < 0) {
+            throw Error('Invalid GLSL. Unmatched close brace.');
+          }
+          break;
+
+        case TokenType.ttCloseBracket:
+          if (--bracketsDepth < 0) {
+            throw Error('Invalid GLSL. Unmatched close bracket.');
+          }
+          break;
+
+        case TokenType.ttCloseParenthesis:
+          if (--parenthesesDepth < 0) {
+            throw Error('Invalid GLSL. Unmatched close parenthesis.');
+          }
+          break;
       }
 
       switch (type) {
@@ -693,12 +779,18 @@ export class GlslMinify {
             // A semicolon ends a variable declaration
             declarationType = TokenType.ttNone;
             variableType = undefined;
+            hasLayout = false;
             mayRequireTrailingSpace = false;
             break;
           }
 
+        case TokenType.ttOpenBrace:
+        case TokenType.ttOpenBracket:
+        case TokenType.ttOpenParenthesis:
+        case TokenType.ttCloseBrace:
+        case TokenType.ttCloseBracket:
+        case TokenType.ttCloseParenthesis:
         case TokenType.ttOperator:
-        case TokenType.ttBracket:
         case TokenType.ttDot: {
             writeToken(false);
 
@@ -706,12 +798,18 @@ export class GlslMinify {
             break;
           }
 
+        case TokenType.ttInOut:
         case TokenType.ttAttribute:
         case TokenType.ttUniform:
         case TokenType.ttVarying: {
             writeToken(true);
 
-            declarationType = type;
+            if (parenthesesDepth === 0 && bracesDepth === 0) {
+              declarationType = type;
+            } else {
+              declarationType = TokenType.ttNone;
+            }
+
             mayRequireTrailingSpace = true;
             break;
           }
@@ -720,6 +818,14 @@ export class GlslMinify {
             writeToken(true);
 
             variableType = token;
+            mayRequireTrailingSpace = true;
+            break;
+          }
+
+        case TokenType.ttLayout: {
+            writeToken(true);
+
+            hasLayout = true;
             mayRequireTrailingSpace = true;
             break;
           }
@@ -742,16 +848,32 @@ export class GlslMinify {
             // Another special case: if the token follows a bracket, it is an array size not a variable/uniform
             // declaration, e.g. `uniform vec3 u[ARRAY_SIZE]`.
             let realDeclarationType = declarationType;
-            if (prevType === TokenType.ttBracket) {
+            if (bracketsDepth > 0) {
+              realDeclarationType = TokenType.ttNone;
+            }
+
+            // Another special case: variable declarations inside parentheses are parameters and can safely be mangled.
+            if (parenthesesDepth > 0) {
+              realDeclarationType = TokenType.ttNone;
+            }
+
+            // Another special case: variable declarations inside braces are either locals, struct or interface block
+            // members, and can safely be mangled.
+            if (bracesDepth > 0) {
               realDeclarationType = TokenType.ttNone;
             }
 
             switch (realDeclarationType) {
               case TokenType.ttAttribute:
               case TokenType.ttVarying:
-                // For attribute and varying declarations, turn off minification.
-                this.tokens.reserveKeywords([token]);
-                writeToken(true);
+              case TokenType.ttInOut:
+                // For attribute, varying, and in/out declarations, turn off minification. Unless the statement has a
+                // layout qualifier, in which case binding is done by position instead of name, so we can safely mangle
+                // the variable.
+                if (!hasLayout) {
+                  this.tokens.reserveKeywords([token]);
+                }
+                writeToken(true, this.tokens.minifyToken(token));
                 break;
 
               case TokenType.ttUniform:
