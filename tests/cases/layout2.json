@@ -1,0 +1,10 @@
+{
+  "sourceCode": "#version 330 core\nout vec4 FragColor;in VS_OUT{vec2 A;}B;uniform sampler2D C;void main(){FragColor=texture2D(C,B.A);}",
+  "consts": {},
+  "uniforms": {
+    "texture": {
+      "variableName": "C",
+      "variableType": "sampler2D"
+    }
+  }
+}
