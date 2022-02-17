@@ -81,7 +81,10 @@ const glslTypeQualifiers = [
   'flat', 'noperspective', 'smooth', 'centroid', 'sample',
 
   // Memory qualifiers
-  'coherent', 'volatile', 'restrict', 'readonly', 'writeonly'
+  'coherent', 'volatile', 'restrict', 'readonly', 'writeonly',
+
+  // Layout qualifiers
+  'layout', 'location'
 ];
 
 const glslConstantValues = [
