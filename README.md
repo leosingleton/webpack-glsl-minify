@@ -199,5 +199,5 @@ The source code is written in TypeScript. The build script supports two commands
 * `npm run test` - Runs unit tests
 
 ## License
-Copyright (c) 2018-2020 [Leo C. Singleton IV](https://www.leosingleton.com/).
+Copyright (c) 2018-2022 [Leo C. Singleton IV](https://www.leosingleton.com/).
 This software is licensed under the MIT License.

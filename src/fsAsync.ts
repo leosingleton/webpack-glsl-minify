@@ -14,7 +14,7 @@ export function exists(p: fs.PathLike): Promise<boolean> {
   });
 }
 
-export function readFile(p: fs.PathLike, options: string): Promise<string> {
+export function readFile(p: fs.PathLike, options: BufferEncoding): Promise<string> {
   return new Promise((resolve, reject) => {
     fs.readFile(p, options, (err, data) => {
       if (err) {
