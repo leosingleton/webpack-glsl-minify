@@ -23,7 +23,8 @@ describe('GlslMinify Preprocessor', () => {
     const output = await glsl.processIncludes(file);
 
     // Expect an additional newline for the // comment after the @include
-    expect(output).toEqual('void /* C-style comment */main() {/**\n * Multi-line comments too\n */}// C++-style comment');
+    expect(output).toEqual(
+      'void /* C-style comment */main() {/**\n * Multi-line comments too\n */}// C++-style comment');
   });
 
   it('Preprocessor handles @define directives', async () => {
