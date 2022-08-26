@@ -458,7 +458,7 @@ export class GlslMinify {
     let output = content;
 
     // Remove carriage returns. Use newlines only.
-    output = output.replace('\r', '');
+    output = output.replace(/\r/g, '');
 
     // Strip any #version directives
     if (this.options.stripVersion) {
