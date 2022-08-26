@@ -7,4 +7,4 @@
 import { webpackLoader } from './webpack';
 export default webpackLoader;
 
-export { GlslVariable, GlslVariableMap, GlslShader } from './minify';
+export { GlslVariable, GlslVariableMap, GlslShader, GlslMinify } from './minify';
