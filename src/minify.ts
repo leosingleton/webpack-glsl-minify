@@ -681,6 +681,7 @@ export class GlslMinify {
 
     /** Token type of the immediately preceding token */
     let prevType = TokenType.ttNone;
+    let prevPrevType = TokenType.ttNone;
 
     let match: string[];
     while ((match = tokenRegex.exec(content))) {
@@ -763,7 +764,7 @@ export class GlslMinify {
 
         case TokenType.ttNumeric: {
             // Special case for numerics: we can omit a zero following a dot (e.g. "1." is the same as "1.0") in GLSL
-            if (token === '0' && prevType === TokenType.ttDot) {
+            if (token === "0" && prevType === TokenType.ttDot && prevPrevType === TokenType.ttNumeric) {
               break;
             }
 
@@ -897,6 +898,7 @@ export class GlslMinify {
       }
 
       // Advance to the next token
+      prevPrevType = prevType;
       prevType = type;
     }
 
